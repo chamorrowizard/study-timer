@@ -2,7 +2,7 @@
 "name": "Study Bunny Timer",
 "short_name": "StudyBunny",
 "display": "standalone",
-"start_url": "index.html",
+"start_url": "./",
 "background_color": "#fdf6e3",
 "theme_color": "#ffb6c1",
 "icons": [
