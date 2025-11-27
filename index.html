@@ -1,238 +1,566 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html lang="en" data-theme="light">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Study Bunny Timer</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Study Timer — Bunny Buddy</title>
 
-<!-- Manifest for PWA -->
-<link rel="manifest" href="manifest.json">
+  <!-- PWA manifest -->
+  <link rel="manifest" href="manifest.json">
 
-<!-- App Icons -->
-<link rel="icon" sizes="192x192" href="icons/icon-192.png">
-<link rel="apple-touch-icon" href="icons/icon-192.png">
+  <!-- Icons -->
+  <link rel="icon" type="image/png" href="bunny-icon.png">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
 
-<style>
-    body {
-        margin: 0;
-        font-family: 'Arial', sans-serif;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        background: #fdf6e3;
+  <meta name="theme-color" content="#6c5ce7" />
+
+  <style>
+    /* ========== Reset & Base ========== */
+    :root{
+      --bg:#fffaf6;
+      --card:#ffffff;
+      --accent:#6c5ce7;
+      --accent-2:#00b894;
+      --muted:#9aa3b2;
+      --danger:#ff6b6b;
+      --glass: rgba(255,255,255,0.7);
+      --text: #111827;
+      --card-shadow: 0 6px 20px rgba(28,31,45,0.06);
     }
-
-    h1 {
-        margin-top: 20px;
-        color: #ff7f95;
+    html[data-theme='dark']{
+      --bg: #0f1226;
+      --card: #151823;
+      --accent: #9b7cff;
+      --accent-2:#21d19f;
+      --muted:#9aa3b2;
+      --text: #e6eef8;
+      --card-shadow: 0 6px 20px rgba(0,0,0,0.6);
     }
-
-    /* Bunny */
-    .bunny {
-        width: 160px;
-        margin: 20px auto;
-        cursor: pointer;
+    *{box-sizing:border-box}
+    body{
+      margin:0;min-height:100vh;padding:18px;font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial;color:var(--text);
+      background: linear-gradient(180deg,#f7fcff 0%, var(--bg) 60%);
+      -webkit-font-smoothing:antialiased;
     }
+    .app{max-width:1100px;margin:0 auto;display:grid;grid-template-columns:1fr 380px;gap:18px}
+    @media (max-width:880px){.app{grid-template-columns:1fr}.right{order:-1}}
 
-    #bunnyHealthContainer {
-        width: 200px;
-        background: #ddd;
-        border-radius: 20px;
-        height: 20px;
-        overflow: hidden;
-        margin: 10px auto 20px;
-    }
+    .card{background:var(--card);border-radius:16px;padding:16px;box-shadow:var(--card-shadow)}
+    header.app-header{display:flex;gap:12px;align-items:center;margin-bottom:12px}
+    h1{font-size:18px;margin:0}
+    p.lead{margin:0;color:var(--muted);font-size:13px}
 
-    #bunnyHealth {
-        width: 100%;
-        height: 100%;
-        background: #89e089;
-        transition: width 0.3s;
-    }
+    /* Left column - subjects */
+    .subjects{display:flex;gap:12px;flex-direction:column;margin-top:8px}
+    .subject-row{display:flex;gap:12px;align-items:center;padding:10px;border-radius:12px;background:linear-gradient(90deg, rgba(108,92,231,0.04), rgba(0,184,148,0.03))}
+    .subject-info{flex:1;min-width:0}
+    .subject-name{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .subject-time{font-size:12px;color:var(--muted);margin-top:4px}
 
-    /* Subject List */
-    #subjects {
-        width: 90%;
-        max-width: 400px;
-        margin-top: 20px;
-    }
+    .progress-wrap{height:12px;background:linear-gradient(90deg,#eee,#f7f7f9);border-radius:12px;overflow:hidden;margin-top:8px}
+    .progress-bar{height:100%;width:0%;border-radius:12px;transition:width .4s linear;background:linear-gradient(90deg,var(--accent),var(--accent-2));box-shadow: inset 0 -6px 14px rgba(0,0,0,0.06)}
 
-    .subject {
-        background: white;
-        padding: 10px;
-        border-radius: 10px;
-        margin-bottom: 10px;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.15);
-    }
+    .controls{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+    .btn{border:0;padding:10px 12px;border-radius:10px;background:var(--accent);color:white;font-weight:600;cursor:pointer;box-shadow:0 4px 10px rgba(108,92,231,0.14)}
+    .btn.secondary{background:transparent;color:var(--accent);border:1px solid rgba(108,92,231,0.12);box-shadow:none;font-weight:700}
+    .btn.ghost{background:transparent;color:var(--muted);border:1px dashed rgba(0,0,0,0.04);box-shadow:none;font-weight:600}
 
-    .bar {
-        height: 10px;
-        background: #89e0ff;
-        border-radius: 20px;
-        margin-top: 5px;
-        transition: width 0.3s;
-    }
+    .row{display:flex;gap:8px;align-items:center}
 
-    button {
-        background: #ffb6c1;
-        border: none;
-        padding: 10px;
-        border-radius: 8px;
-        margin-top: 10px;
-        cursor: pointer;
-    }
+    /* Right column - bunny + timer */
+    .right{display:flex;flex-direction:column;gap:12px;position:relative}
+    .bunny-card{display:flex;flex-direction:column;align-items:center;gap:12px;padding:18px;text-align:center}
+    .bunny-wrap{width:100%;display:flex;justify-content:center}
+    svg.bunny{width:220px;height:160px;touch-action:manipulation;user-select:none}
+    .pet-hint{font-size:12px;color:var(--muted);margin-top:6px}
+    .health-bar{width:100%;background:#f0f3f7;height:14px;border-radius:8px;overflow:hidden;margin-top:6px}
+    .health-inner{height:100%;width:50%;transition:width .6s linear;background:linear-gradient(90deg,#ffd166,#ff8fab)}
 
-    /* Timer section */
-    #timerSection {
-        margin-top: 20px;
-        text-align: center;
-    }
+    .timer-card{padding:12px;display:flex;flex-direction:column;gap:12px;align-items:stretch}
+    .timer-display{font-size:28px;font-weight:700;padding:10px;border-radius:12px;background:linear-gradient(180deg,#fff,#fbfbff);text-align:center;box-shadow:inset 0 -4px 10px rgba(0,0,0,0.03)}
+    .mode-toggle{display:flex;gap:8px;justify-content:center}
+    .small{font-size:13px;padding:8px 10px}
+    .input-row{display:flex;gap:8px}
+    input[type="text"], input[type="number"]{padding:10px;border-radius:10px;border:1px solid #eee;flex:1;font-size:14px}
 
-    #timeDisplay {
-        font-size: 30px;
-        margin: 10px 0;
-    }
-</style>
+    .subject-list-header{display:flex;justify-content:space-between;align-items:center}
+    .muted{color:var(--muted);font-size:13px}
+    .controls-bottom{display:flex;justify-content:space-between;align-items:center;gap:8px}
 
+    .icon-btn{background:transparent;border-radius:8px;padding:6px;border:1px solid rgba(0,0,0,0.04);cursor:pointer}
+    .pill{padding:6px 10px;border-radius:999px;background:linear-gradient(90deg,#f5f6ff,#fff);font-weight:700;color:var(--muted)}
+
+    /* small responsive tweaks */
+    @media (max-width:420px){svg.bunny{width:180px;height:140px}}
+    /* theme toggle button position */
+    #themeToggle{position:absolute;right:10px;top:10px;padding:8px 12px;border-radius:10px;border:0;background:var(--card);color:var(--text);box-shadow:var(--card-shadow);cursor:pointer}
+  </style>
 </head>
 <body>
+  <button id="themeToggle" aria-label="Toggle theme">Dark</button>
 
-<h1>Study Bunny</h1>
+  <div class="app">
+    <!-- Left: Subjects & Control -->
+    <div class="card">
+      <header class="app-header">
+        <div>
+          <h1>Study Timer — Bunny Buddy</h1>
+          <p class="lead">Add subjects, track time, and help your bunny thrive ✨</p>
+        </div>
+        <div style="margin-left:auto" class="pill">Installable PWA</div>
+      </header>
 
-<!-- Bunny -->
-<img src="icons/bunny.png" class="bunny" id="bunny">
-<div id="bunnyHealthContainer">
-    <div id="bunnyHealth"></div>
-</div>
+      <div class="subject-list-header">
+        <div class="muted">Subjects</div>
+        <div>
+          <button id="add-subject-btn" class="btn small">+ Add</button>
+        </div>
+      </div>
 
-<!-- Subjects -->
-<div id="subjects"></div>
-<button onclick="addSubject()">Add Subject</button>
+      <div class="subjects" id="subjects"></div>
 
-<!-- Timer -->
-<div id="timerSection">
-    <h2>Timer</h2>
-    <select id="subjectSelect"></select>
-    <div id="timeDisplay">00:00</div>
+      <div style="margin-top:14px" class="controls-bottom">
+        <div class="muted">Total study: <span id="total-time">0m</span></div>
+        <div style="display:flex;gap:8px">
+          <button id="reset-data" class="btn secondary small">Reset</button>
+          <button id="export-data" class="btn small">Export</button>
+        </div>
+      </div>
+    </div>
 
-    <button onclick="startTimer()">Start</button>
-    <button onclick="stopTimer()">Stop</button>
-    <button onclick="resetTimer()">Reset</button>
-</div>
+    <!-- Right: Bunny + Timer -->
+    <div class="right">
+      <div class="card bunny-card">
+        <div class="bunny-wrap">
+          <!-- Use external bunny-icon.png as an <img> fallback and decorative SVG for animation -->
+          <img id="bunny-img" src="bunny-icon.png" alt="Bunny" style="width:220px;height:160px;object-fit:cover;border-radius:14px;"/>
+        </div>
+
+        <div style="width:100%">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <div style="font-weight:800">Bunny Buddy</div>
+            <div class="muted small">Mood reflects studying</div>
+          </div>
+          <div class="health-bar">
+            <div id="health-inner" class="health-inner" style="width:60%"></div>
+          </div>
+          <div class="pet-hint">Tap the bunny to pet — she loves attention 🥰</div>
+        </div>
+      </div>
+
+      <div class="card timer-card">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div>
+            <div class="muted small">Active subject</div>
+            <div id="active-subject" style="font-weight:800">— None —</div>
+          </div>
+          <div style="text-align:right">
+            <div class="muted small">Mode</div>
+            <div class="pill" id="mode-pill">Stopwatch</div>
+          </div>
+        </div>
+
+        <div class="timer-display" id="timer-display">00:00:00</div>
+
+        <div class="mode-toggle">
+          <button id="mode-stopwatch" class="btn small">Stopwatch</button>
+          <button id="mode-timer" class="btn small secondary">Timer</button>
+        </div>
+
+        <div class="input-row" id="timer-inputs" style="display:none">
+          <input id="timer-minutes" type="number" min="0" placeholder="minutes" />
+          <input id="timer-seconds" type="number" min="0" placeholder="seconds" />
+        </div>
+
+        <div style="display:flex;gap:8px;justify-content:center">
+          <button id="start-btn" class="btn">Start</button>
+          <button id="pause-btn" class="btn secondary">Pause</button>
+          <button id="stop-btn" class="btn ghost">Stop</button>
+        </div>
+
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px">
+          <div class="muted small">When timer runs, active subject time increases</div>
+          <div>
+            <button id="quick-15" class="icon-btn" title="Add 15 minutes">+15m</button>
+            <button id="quick-30" class="icon-btn" title="Add 30 minutes">+30m</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="padding:10px;text-align:center">
+        <div class="muted small">Tips</div>
+        <div style="margin-top:6px">Pet the bunny while you study to boost happiness. Keep sessions consistent — little wins add up.</div>
+      </div>
+
+    </div>
+  </div>
 
 <script>
-let subjects = [];
-let timerInterval = null;
-let seconds = 0;
-let bunnyHealth = 100;
+/*
+  index.html - PWA entry file
+  This file expects these companion files in the same folder:
+    - manifest.json
+    - service-worker.js
+    - bunny-icon.png
+    - icons/icon-192.png
+    - icons/icon-512.png
 
-/* Load saved data */
-if (localStorage.getItem("subjects")) {
-    subjects = JSON.parse(localStorage.getItem("subjects"));
-}
-if (localStorage.getItem("bunnyHealth")) {
-    bunnyHealth = localStorage.getItem("bunnyHealth");
-}
-updateUI();
+  It preserves the full study-timer functionality: subject list with add/edit/delete,
+  per-subject progress bars, stopwatch & timer modes, bunny pet + health, localStorage persistence,
+  export/reset, quick-add time, and theme toggle (light/dark).
+*/
 
-/* Auto drain bunny health */
-setInterval(() => {
-    bunnyHealth -= 0.1;
-    bunnyHealth = Math.max(0, bunnyHealth);
-    saveData();
-    updateUI();
-}, 1000);
+(function(){
 
-/* Add Subject */
-function addSubject() {
-    const name = prompt("Subject name?");
-    if (name) {
-        subjects.push({ name, time: 0 });
-        saveData();
-        updateUI();
-    }
-}
+  // Storage key
+  const STORAGE_KEY = 'studyTimerData_v1';
 
-/* Delete Subject */
-function deleteSubject(index) {
-    subjects.splice(index, 1);
-    saveData();
-    updateUI();
-}
+  // Initial default state (will be overwritten by saved state if present)
+  let state = {
+    subjects: [
+      {id: id(), name: 'Math', seconds: 0, goalSeconds: 60*60},
+      {id: id(), name: 'Reading', seconds: 0, goalSeconds: 45*60}
+    ],
+    activeId: null,
+    timer: {running:false, mode:'stopwatch', startedAt:null, elapsed:0, countdownLeft:0},
+    health: 80,
+    lastTick: Date.now(),
+    theme: 'light'
+  };
 
-/* Update UI */
-function updateUI() {
-    const container = document.getElementById("subjects");
-    const dropdown = document.getElementById("subjectSelect");
+  // Helpers
+  function id(){ return Math.random().toString(36).slice(2,9) }
+  function save(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)) }
+  function load(){
+    try{
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if(raw) {
+        const parsed = JSON.parse(raw);
+        // quick merge so keys not present in parsed are preserved
+        state = Object.assign(state, parsed);
+      }
+    }catch(e){ console.warn('Load failed', e) }
+  }
 
-    container.innerHTML = "";
-    dropdown.innerHTML = "";
+  // Formatting
+  function fmtTime(secs){
+    const s = Math.floor(secs%60).toString().padStart(2,'0');
+    const m = Math.floor((secs/60)%60).toString().padStart(2,'0');
+    const h = Math.floor(secs/3600).toString().padStart(2,'0');
+    return h + ':' + m + ':' + s;
+  }
 
-    subjects.forEach((sub, i) => {
-        let percent = (sub.time / 3600) * 100;
-        percent = Math.min(percent, 100);
+  // DOM elements
+  const subjectsEl = document.getElementById('subjects');
+  const totalTimeEl = document.getElementById('total-time');
+  const activeSubjectEl = document.getElementById('active-subject');
+  const timerDisplay = document.getElementById('timer-display');
+  const startBtn = document.getElementById('start-btn');
+  const pauseBtn = document.getElementById('pause-btn');
+  const stopBtn = document.getElementById('stop-btn');
+  const modeStopwatch = document.getElementById('mode-stopwatch');
+  const modeTimer = document.getElementById('mode-timer');
+  const timerInputs = document.getElementById('timer-inputs');
+  const timerMinutes = document.getElementById('timer-minutes');
+  const timerSeconds = document.getElementById('timer-seconds');
+  const modePill = document.getElementById('mode-pill');
+  const healthInner = document.getElementById('health-inner');
+  const bunnyImg = document.getElementById('bunny-img');
+  const addSubBtn = document.getElementById('add-subject-btn');
+  const resetBtn = document.getElementById('reset-data');
+  const exportBtn = document.getElementById('export-data');
+  const quick15 = document.getElementById('quick-15');
+  const quick30 = document.getElementById('quick-30');
+  const themeToggle = document.getElementById('themeToggle');
 
-        container.innerHTML += `
-            <div class="subject">
-                <strong>${sub.name}</strong>
-                <div class="bar" style="width:${percent}%"></div>
-                <button onclick="deleteSubject(${i})">Delete</button>
-            </div>
-        `;
+  // Load saved state
+  load();
 
-        dropdown.innerHTML += `<option value="${i}">${sub.name}</option>`;
-    });
+  // Set theme from state
+  if(state.theme) {
+    document.documentElement.dataset.theme = state.theme;
+    themeToggle.textContent = state.theme === 'light' ? 'Dark' : 'Light';
+  }
 
-    document.getElementById("bunnyHealth").style.width = bunnyHealth + "%";
-}
+  // Ensure active subject exists
+  if(!state.activeId && state.subjects.length) state.activeId = state.subjects[0].id;
 
-/* Timer Functions */
-function startTimer() {
-    if (timerInterval) return;
+  // Render subjects
+  function renderSubjects(){
+    subjectsEl.innerHTML = '';
+    const total = state.subjects.reduce((s,x)=>s+x.seconds,0);
+    totalTimeEl.textContent = Math.floor(total/60) + 'm';
+    for(const s of state.subjects){
+      const wrap = document.createElement('div');
+      wrap.className = 'subject-row';
 
-    timerInterval = setInterval(() => {
-        seconds++;
-        document.getElementById("timeDisplay").textContent = formatTime(seconds);
+      const info = document.createElement('div');
+      info.className = 'subject-info';
+      const title = document.createElement('div');
+      title.className = 'subject-name';
+      title.textContent = s.name;
+      if(state.activeId === s.id) title.style.color = 'var(--accent)';
+      const time = document.createElement('div');
+      time.className = 'subject-time';
+      time.textContent = fmtTime(s.seconds);
+      info.appendChild(title);
+      info.appendChild(time);
 
-        let i = document.getElementById("subjectSelect").value;
-        if (subjects[i]) {
-            subjects[i].time++;
+      const progWrap = document.createElement('div');
+      progWrap.className = 'progress-wrap';
+      progWrap.style.width = '100%';
+      const prog = document.createElement('div');
+      prog.className = 'progress-bar';
+      const pct = Math.min(100, Math.round((s.seconds / (s.goalSeconds||3600))*100));
+      prog.style.width = pct + '%';
+      progWrap.appendChild(prog);
+
+      const actions = document.createElement('div');
+      actions.className = 'subject-actions';
+      const selectBtn = document.createElement('button');
+      selectBtn.className = 'btn secondary small';
+      selectBtn.textContent = (state.activeId === s.id) ? 'Active' : 'Select';
+      selectBtn.onclick = ()=>{ state.activeId = s.id; save(); renderAll() };
+
+      const editBtn = document.createElement('button');
+      editBtn.className = 'btn small ghost';
+      editBtn.textContent = 'Edit';
+      editBtn.onclick = ()=> editSubject(s.id);
+
+      const deleteBtn = document.createElement('button');
+      deleteBtn.className = 'btn small';
+      deleteBtn.style.background = 'var(--danger)';
+      deleteBtn.textContent = 'Delete';
+      deleteBtn.onclick = ()=> {
+        if(confirm('Delete subject "'+s.name+'"?')) {
+          state.subjects = state.subjects.filter(x=>x.id!==s.id);
+          if(state.activeId === s.id) state.activeId = state.subjects.length ? state.subjects[0].id : null;
+          save(); renderAll();
         }
+      };
 
-        bunnyHealth = Math.min(100, Number(bunnyHealth) + 0.1);
+      const leftCol = document.createElement('div');
+      leftCol.style.flex = '1';
+      leftCol.appendChild(info);
+      leftCol.appendChild(progWrap);
 
-        saveData();
-        updateUI();
-    }, 1000);
-}
+      actions.appendChild(selectBtn);
+      actions.appendChild(editBtn);
+      actions.appendChild(deleteBtn);
 
-function stopTimer() {
-    clearInterval(timerInterval);
-    timerInterval = null;
-}
+      wrap.appendChild(leftCol);
+      wrap.appendChild(actions);
+      subjectsEl.appendChild(wrap);
+    }
+  }
 
-function resetTimer() {
-    seconds = 0;
-    document.getElementById("timeDisplay").textContent = "00:00";
-}
+  // Add subject
+  addSubBtn.addEventListener('click', ()=> {
+    const name = prompt('New subject name (e.g., "Biology")');
+    if(!name) return;
+    const mins = parseInt(prompt('Goal in minutes (optional, default 60)'),10) || 60;
+    state.subjects.push({id:id(), name:name.trim(), seconds:0, goalSeconds: mins*60});
+    if(!state.activeId) state.activeId = state.subjects[0].id;
+    save(); renderAll();
+  });
 
-function formatTime(sec) {
-    let m = Math.floor(sec / 60);
-    let s = sec % 60;
-    return `${String(m).padStart(2, '0')}:${String(s).padStart(2,'0')}`;
-}
+  function editSubject(id){
+    const s = state.subjects.find(x=>x.id===id);
+    if(!s) return;
+    const newName = prompt('Edit name', s.name);
+    if(newName==null) return;
+    const newGoal = parseInt(prompt('Goal minutes', Math.round((s.goalSeconds||3600)/60)),10) || Math.round((s.goalSeconds||3600)/60);
+    s.name = newName.trim();
+    s.goalSeconds = Math.max(60, newGoal*60);
+    save(); renderAll();
+  }
 
-/* Save progress */
-function saveData() {
-    localStorage.setItem("subjects", JSON.stringify(subjects));
-    localStorage.setItem("bunnyHealth", bunnyHealth);
-}
+  // Timer controls
+  modeStopwatch.onclick = ()=> { state.timer.mode = 'stopwatch'; timerInputs.style.display='none'; modePill.textContent='Stopwatch'; save(); renderAll() };
+  modeTimer.onclick = ()=> { state.timer.mode = 'timer'; timerInputs.style.display='flex'; modePill.textContent='Timer'; save(); renderAll() };
 
-/* Service Worker Registration */
-if ("serviceWorker" in navigator) {
-    navigator.serviceWorker.register("service-worker.js");
-}
+  startBtn.onclick = ()=> {
+    if(!state.activeId){
+      alert('Select or add a subject first.');
+      return;
+    }
+    if(state.timer.mode === 'timer'){
+      const mins = parseInt(timerMinutes.value || '0',10) || 0;
+      const secs = parseInt(timerSeconds.value || '0',10) || 0;
+      const total = mins*60 + secs;
+      if(total <= 0){
+        alert('Enter timer duration.');
+        return;
+      }
+      state.timer.countdownLeft = total;
+      state.timer.elapsed = 0;
+    }
+    state.timer.running = true;
+    state.timer.startedAt = Date.now();
+    save();
+  };
+
+  pauseBtn.onclick = ()=> {
+    if(!state.timer.running) return;
+    const now = Date.now();
+    const dt = Math.floor((now - state.timer.startedAt)/1000);
+    state.timer.elapsed += dt;
+    state.timer.running = false;
+    state.timer.startedAt = null;
+    save();
+    renderAll();
+  };
+
+  stopBtn.onclick = ()=> {
+    state.timer.running = false;
+    state.timer.startedAt = null;
+    state.timer.elapsed = 0;
+    state.timer.countdownLeft = 0;
+    save();
+    renderAll();
+  };
+
+  quick15.onclick = ()=> { addTimeToActive(15*60); };
+  quick30.onclick = ()=> { addTimeToActive(30*60); };
+
+  function addTimeToActive(sec){
+    if(!state.activeId) return;
+    const s = state.subjects.find(x=>x.id===state.activeId);
+    if(!s) return;
+    s.seconds += sec;
+    save(); renderAll();
+  }
+
+  // export/reset
+  exportBtn.onclick = ()=> {
+    const data = JSON.stringify(state, null, 2);
+    const url = URL.createObjectURL(new Blob([data], {type:'application/json'}));
+    const a = document.createElement('a');
+    a.href = url; a.download = 'study-timer-export.json';
+    a.click(); URL.revokeObjectURL(url);
+  };
+  resetBtn.onclick = ()=> {
+    if(confirm('Clear all data and reset?')){
+      localStorage.removeItem(STORAGE_KEY);
+      location.reload();
+    }
+  };
+
+  // bunny pet interaction
+  (function(){
+    let petTimeout;
+    bunnyImg.addEventListener('click', ()=> {
+      // simple visual feedback: scale
+      bunnyImg.animate([{transform:'scale(1)'},{transform:'scale(0.96)'},{transform:'scale(1)'}],{duration:280,easing:'ease-out'});
+      // pet gives a small health boost
+      state.health = Math.min(100, state.health + 6);
+      save(); renderAll();
+      if(petTimeout) clearTimeout(petTimeout);
+      petTimeout = setTimeout(()=>{ petTimeout = null }, 600);
+    });
+  })();
+
+  // tick loop using requestAnimationFrame for smoothness
+  function tick(){
+    const now = Date.now();
+    const dtMs = now - (state.lastTick || now);
+    const dt = Math.floor(dtMs/1000);
+    if(dt > 0){
+      if(state.timer.running && state.activeId){
+        if(state.timer.mode === 'stopwatch'){
+          const s = state.subjects.find(x=>x.id===state.activeId);
+          if(s) s.seconds += dt;
+          state.timer.elapsed += dt;
+          state.timer.startedAt = now;
+        } else if(state.timer.mode === 'timer'){
+          const before = state.timer.countdownLeft;
+          state.timer.countdownLeft = Math.max(0, Math.floor(state.timer.countdownLeft - dt));
+          const consumed = Math.min(dt, before);
+          const s = state.subjects.find(x=>x.id===state.activeId);
+          if(s) s.seconds += consumed;
+          state.timer.startedAt = now;
+          if(state.timer.countdownLeft <= 0){
+            state.timer.running = false;
+            state.timer.startedAt = null;
+            flashBunny();
+          }
+        }
+        state.health = Math.min(100, state.health + (dt * 0.12));
+      } else {
+        state.health = Math.max(0, state.health - (dt * 0.05));
+        state.timer.startedAt = null;
+      }
+      state.lastTick = now;
+      save();
+      renderAll();
+    }
+    requestAnimationFrame(tick);
+  }
+
+  function flashBunny(){
+    bunnyImg.animate([{filter:'brightness(1)'},{filter:'brightness(1.12)'},{filter:'brightness(1)'}],{duration:600,easing:'ease-out'});
+  }
+
+  function renderTimer(){
+    let display = '00:00:00';
+    if(state.timer.mode === 'stopwatch'){
+      const secs = state.timer.elapsed + (state.timer.running ? Math.floor((Date.now()-state.timer.startedAt)/1000) : 0);
+      display = fmtTime(secs);
+    } else {
+      const left = state.timer.countdownLeft - (state.timer.running ? Math.floor((Date.now()-state.timer.startedAt)/1000) : 0);
+      const secs = Math.max(0,left);
+      display = fmtTime(secs);
+    }
+    timerDisplay.textContent = display;
+    if(state.timer.running){
+      startBtn.disabled = true; startBtn.style.opacity = 0.6; pauseBtn.disabled = false;
+    } else {
+      startBtn.disabled = false; startBtn.style.opacity = 1; pauseBtn.disabled = true;
+    }
+    const active = state.subjects.find(x=>x.id===state.activeId);
+    activeSubjectEl.textContent = active ? active.name : '— None —';
+    modePill.textContent = state.timer.mode === 'stopwatch' ? 'Stopwatch' : 'Timer';
+  }
+
+  function renderAll(){
+    renderSubjects();
+    renderTimer();
+    healthInner.style.width = Math.max(0, Math.min(100, Math.round(state.health))) + '%';
+  }
+
+  // start UI
+  renderAll();
+  requestAnimationFrame(tick);
+
+  // expose state for debugging
+  window._studyState = state;
+  save();
+
+  // keyboard shortcuts
+  window.addEventListener('keydown', (e)=>{
+    if(e.key === ' '){ e.preventDefault(); if(state.timer.running) pauseBtn.click(); else startBtn.click(); }
+    if(e.key === 'p') bunnyImg.click();
+  });
+
+  // Theme toggle
+  themeToggle.addEventListener('click', ()=>{
+    const html = document.documentElement;
+    html.dataset.theme = html.dataset.theme === 'light' ? 'dark' : 'light';
+    themeToggle.textContent = html.dataset.theme === 'light' ? 'Dark' : 'Light';
+    state.theme = html.dataset.theme;
+    save();
+  });
+
+  // register service worker for offline + caching (PWA)
+  if('serviceWorker' in navigator){
+    navigator.serviceWorker.register('service-worker.js').then(reg=>{
+      console.log('SW registered', reg.scope);
+    }).catch(err=>{
+      console.warn('SW failed', err);
+    });
+  }
+
+})();
 </script>
-
 </body>
 </html>
