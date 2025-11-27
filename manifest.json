@@ -1,0 +1,16 @@
+
+{
+  "name": "Study Timer",
+  "short_name": "Study",
+  "icons": [
+    {
+      "src": "bunny-icon.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  "start_url": "study-timer.html",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#ffffff"
+}
