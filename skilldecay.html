@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Skill Decay</title>
+
+<style>
+/* =============================
+   GLOBAL
+============================= */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: "Trebuchet MS", sans-serif;
+}
+
+body {
+    background-color: #171e5c;
+    color: #fff;
+    padding: 20px;
+}
+
+h1 {
+    text-align: center;
+    font-size: 2.3rem;
+    margin-bottom: 25px;
+    text-shadow: 3px 3px 0 #000;
+    filter: drop-shadow(5px 5px 2px #000);
+}
+
+/* =============================
+   INPUT AREA
+============================= */
+#add-area {
+    margin-bottom: 30px;
+    display: flex;
+    gap: 10px;
+}
+
+#skill-name {
+    flex: 1;
+    padding: 12px;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    outline: none;
+}
+
+#add-btn {
+    padding: 12px 15px;
+    background: #ff1a1a;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    color: white;
+    cursor: pointer;
+    box-shadow: 0 0 8px #000;
+}
+#add-btn:hover {
+    background: hsla(166, 90%, 15%, 0.877);
+}
+
+/* =============================
+   SKILL CARD
+============================= */
+.skill {
+    padding: 20px;
+    margin-bottom: 25px;
+    border-radius: 12px;
+    background: rgba(0,0,0,0.55);
+    backdrop-filter: blur(3px);
+    box-shadow: 0 0 15px rgba(255, 255, 255, 0.1);
+    position: relative;
+    overflow: hidden;
+}
+
+/* spray stencil texture */
+.skill::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image: url('https://i.imgur.com/cyQeHLv.png');
+    opacity: 0.13;
+    pointer-events: none;
+    mix-blend-mode: screen;
+}
+
+.skill-title {
+    font-size: 1.4rem;
+    font-weight: bold;
+    margin-bottom: 12px;
+    text-shadow: 1px 1px 0 #000;
+}
+
+/* health bar */
+.bar-wrapper {
+    width: 100%;
+    height: 26px;
+    background: rgba(255,255,255,0.15);
+    border-radius: 15px;
+    overflow: hidden;
+    border: 2px solid rgba(255,255,255,0.3);
+    margin-bottom: 8px;
+    position: relative;
+}
+
+.health-bar {
+    height: 100%;
+    width: 100%;
+    background: linear-gradient(90deg, #32ff4d, #4dff87);
+    transition: width .4s ease-out;
+    box-shadow: inset 0 0 8px #000;
+}
+
+.btn-row {
+    margin-top: 12px;
+    display: flex;
+    gap: 10px;
+}
+
+.study-btn {
+    padding: 8px 12px;
+    background: #00ccff;
+    border: none;
+    color: white;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: .9rem;
+    box-shadow: 0 0 8px #000;
+}
+.study-btn:hover {
+    background: #33ddff;
+}
+
+.delete-btn {
+    padding: 8px 12px;
+    background: #ff1a1a;
+    border: none;
+    color: white;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: .9rem;
+    box-shadow: 0 0 8px #000;
+}
+.delete-btn:hover {
+    background: #ff4d4d;
+}
+
+.last-trained {
+    font-size: .85rem;
+    opacity: .85;
+}
+</style>
+</head>
+
+<body>
+
+<h1>Skill Decay Tracker</h1>
+
+<div id="add-area">
+    <input id="skill-name" type="text" placeholder="New subject...">
+    <button id="add-btn">Add</button>
+</div>
+
+<div id="skills-container"></div>
+
+<script>
+/* ======================================================
+   CONFIG
+====================================================== */
+const DECAY_RATE_PER_DAY = 0.05; 
+// Skill reaches 0 in 20 days with no activity
+
+/* ======================================================
+   LOAD OR INIT LOCAL STORAGE
+====================================================== */
+let skills = JSON.parse(localStorage.getItem("decaySkills")) || [];
+
+/* ======================================================
+   SAVE
+====================================================== */
+function saveSkills() {
+    localStorage.setItem("decaySkills", JSON.stringify(skills));
+}
+
+/* ======================================================
+   DECAY MATH
+====================================================== */
+function calculateHealth(lastTrained) {
+    const last = lastTrained;      // timestamp
+    const now = Date.now();
+    const diffDays = (now - last) / (1000 * 60 * 60 * 24);
+
+    const decay = diffDays * DECAY_RATE_PER_DAY;
+    const health = Math.max(0, 1 - decay);
+
+    return Math.round(health * 100);
+}
+
+
+/* ======================================================
+   ADD NEW SKILL
+====================================================== */
+document.getElementById("add-btn").addEventListener("click", () => {
+    const name = document.getElementById("skill-name").value.trim();
+    if (name === "") return;
+
+    skills.push({
+        id: Date.now(),
+        name,
+        lastTrained: Date.now()
+    });
+
+    saveSkills();
+    renderSkills();
+
+    document.getElementById("skill-name").value = "";
+});
+
+/* ======================================================
+   DELETE SKILL
+====================================================== */
+function deleteSkill(id) {
+    skills = skills.filter(s => s.id !== id);
+    saveSkills();
+    renderSkills();
+}
+
+/* ======================================================
+   STUDY / UPDATE SKILL
+====================================================== */
+function studySkill(id) {
+    const skill = skills.find(s => s.id === id);
+    if (!skill) return;
+
+    // Reset last trained to today
+    skill.lastTrained = Date.now()
+
+    saveSkills();
+    renderSkills();
+}
+
+/* ======================================================
+   RENDER GUI
+====================================================== */
+function renderSkills() {
+    const container = document.getElementById("skills-container");
+    container.innerHTML = "";
+
+    skills.forEach(skill => {
+        const health = calculateHealth(skill.lastTrained);
+
+        let color;
+        if (health > 60) color = "linear-gradient(90deg, #32ff4d, #4dff87)";
+        else if (health > 30) color = "linear-gradient(90deg, #ffdd00, #ffb300)";
+        else color = "linear-gradient(90deg, #ff4d4d, #ff1a1a)";
+
+        const card = document.createElement("div");
+        card.className = "skill";
+        const readable = new Date(skill.lastTrained)
+    .toLocaleDateString('en-US', { timeZone: 'America/Los_Angeles' });
+
+        card.innerHTML = `
+            <div class="skill-title">${skill.name}</div>
+            <div class="bar-wrapper">
+                <div 
+                    class="health-bar" 
+                    style="width:${health}%; background:${color};">
+                </div>
+            </div>
+            <div class="last-trained">
+                Last trained: ${readable}
+
+            </div>
+
+            <div class="btn-row">
+                <button class="study-btn" onclick="studySkill(${skill.id})">
+                    Study
+                </button>
+                <button class="delete-btn" onclick="deleteSkill(${skill.id})">
+                    Delete
+                </button>
+            </div>
+        `;
+
+        container.appendChild(card);
+    });
+}
+
+/* ======================================================
+   INIT
+====================================================== */
+renderSkills();
+setInterval(renderSkills, 10000);
+</script>
+
+</body>
+</html>
