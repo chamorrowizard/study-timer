@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quick Study Ideas</title>
+
+<style>
+    body {
+        background: #0f132b;
+        font-family: Arial, sans-serif;
+        color: white;
+        padding: 20px;
+    }
+
+    h1 {
+        text-align: center;
+        margin-bottom: 20px;
+        font-size: 2rem;
+    }
+
+    #input-area {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 20px;
+    }
+
+    #idea-input {
+        flex: 1;
+        padding: 12px;
+        border-radius: 10px;
+        border: none;
+        font-size: 1rem;
+        outline: none;
+    }
+
+    #add-btn {
+        padding: 12px 15px;
+        background: linear-gradient(90deg, #FFD700, #FFC300, #FFB700);
+        color: black;
+        font-weight: 600;
+        border: none;
+        border-radius: 10px;
+        cursor: pointer;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.25);
+    }
+
+    #ideas-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+
+    .idea-btn {
+        padding: 10px 14px;
+        border-radius: 12px;
+        border: none;
+        cursor: pointer;
+        font-weight: 600;
+        color: black;
+        background: linear-gradient(90deg, #FFF4C2, #FFD700, #CC9A00);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.25);
+    }
+
+    .delete-x {
+        background: rgba(0,0,0,0.3);
+        color: white;
+        border-radius: 50%;
+        padding: 2px 6px;
+        cursor: pointer;
+        font-weight: bold;
+    }
+</style>
+</head>
+<body>
+<a href="./index.html">
+  <button id="add-btn" style="margin-left: auto; margin-right: auto;">Back</button>
+</a>
+<h1>Study Ideas Board</h1>
+
+<div id="input-area">
+    <input id="idea-input" type="text" placeholder="New idea...">
+    <button id="add-btn">Add</button>
+</div>
+
+<div id="ideas-container"></div>
+
+<script>
+// Load ideas or initialize
+let ideas = JSON.parse(localStorage.getItem("studyIdeas")) || [];
+
+// Save
+function saveIdeas() {
+    localStorage.setItem("studyIdeas", JSON.stringify(ideas));
+}
+
+// Add new idea
+document.getElementById("add-btn").addEventListener("click", () => {
+    const input = document.getElementById("idea-input");
+    const text = input.value.trim();
+    if (text === "") return;
+
+    ideas.push({ id: Date.now(), text });
+    saveIdeas();
+    renderIdeas();
+
+    input.value = "";
+});
+
+// Delete idea
+function deleteIdea(id) {
+    ideas = ideas.filter(i => i.id !== id);
+    saveIdeas();
+    renderIdeas();
+}
+
+// Render UI
+function renderIdeas() {
+    const container = document.getElementById("ideas-container");
+    container.innerHTML = "";
+
+    ideas.forEach(idea => {
+        const btn = document.createElement("button");
+        btn.className = "idea-btn";
+        btn.innerHTML = `
+            ${idea.text}
+            <span class="delete-x" onclick="deleteIdea(${idea.id})">×</span>
+        `;
+        container.appendChild(btn);
+    });
+}
+
+// Init
+renderIdeas();
+</script>
+
+</body>
+</html>
