@@ -50,19 +50,20 @@ h1 {
 
 #add-btn, #back-btn {
     padding: 12px 15px;
-    background: #ff1a1a;
+    background: linear-gradient(90deg, #FFF4C2, #FFD700, #CC9A00);
     border: none;
     border-radius: 8px;
     font-size: 1rem;
-    color: white;
+    color: rgb(0, 0, 0);
     cursor: pointer;
     box-shadow: 0 0 8px #000;
+    font-weight: 600;
 }
 #add-btn:hover {
-    background: hsla(166, 90%, 15%, 0.877);
+    background-color: rgba(255, 215, 0, 0.4);
 }
 #back-btn:hover {
-    background: hsla(166, 90%, 15%, 0.877);
+    background-color: rgba(255, 215, 0, 0.4);
 }
 
 /* =============================
@@ -72,11 +73,12 @@ h1 {
     padding: 20px;
     margin-bottom: 25px;
     border-radius: 12px;
-    background: rgba(0,0,0,0.55);
+    /* background: rgba(0,0,0,0.55); */
     backdrop-filter: blur(3px);
     box-shadow: 0 0 15px rgba(255, 255, 255, 0.1);
     position: relative;
     overflow: hidden;
+    background: linear-gradient(90deg, #000050, #e2b82b, #000000);
 }
 
 /* spray stencil texture */
@@ -84,8 +86,8 @@ h1 {
     content: "";
     position: absolute;
     inset: 0;
-    background-image: url('./io.webp');
-    opacity: 0.13;
+    background: gold;
+    opacity: 0.10;
     pointer-events: none;
     mix-blend-mode: screen;
 }
@@ -125,13 +127,13 @@ h1 {
 
 .study-btn {
     padding: 8px 12px;
-    background: #00ccff;
-    border: none;
-    color: white;
+    background: #00ccff;background: linear-gradient(90deg, #FFF4C2, #FFD700, #CC9A00);border: none;
+    color: rgb(0, 0, 0);
     border-radius: 6px;
     cursor: pointer;
     font-size: .9rem;
     box-shadow: 0 0 8px #000;
+    font-weight: 600;
 }
 .study-btn:hover {
     background: #33ddff;
@@ -147,6 +149,7 @@ h1 {
     font-size: .9rem;
     box-shadow: 0 0 8px #000;
     margin-left: auto;
+    font-weight: 600;
 }
 .delete-btn:hover {
     background: #ff4d4d;
