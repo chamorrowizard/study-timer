@@ -302,6 +302,87 @@ function renderSkills() {
 ====================================================== */
 renderSkills();
 setInterval(renderSkills, 10000);
+
+/* ======================================================
+   RENDER GUI (SECURE VERSION)
+====================================================== */
+function renderSkills() {
+    const container = document.getElementById("skills-container");
+    container.innerHTML = ""; // This is safe because you are clearing the container
+
+    // 1. Calculate health for all skills and store it temporarily
+    const skillsWithHealth = skills.map(skill => {
+        const health = calculateHealth(skill.lastTrained);
+        return {
+            ...skill,
+            health 
+        };
+    });
+
+    // 2. SORT the skills array based on health (ascending: lowest health first)
+    skillsWithHealth.sort((a, b) => a.health - b.health);
+
+
+    // 3. Loop through the SORTED array and render the cards
+    skillsWithHealth.forEach(skill => {
+        const health = skill.health; 
+
+        let color;
+        if (health > 60) color = "linear-gradient(90deg, #32ff4d, #4dff87)";
+        else if (health > 30) color = "linear-gradient(90deg, #ffdd00, #ffb300)";
+        else color = "linear-gradient(90deg, #ff4d4d, #ff1a1a)";
+
+        const card = document.createElement("div");
+        card.className = "skill";
+        
+        // --- START: BUILDING THE CARD SECURELY ---
+        
+        // 1. Title Element
+        const title = document.createElement("div");
+        title.className = "skill-title";
+        // *** SECURITY FIX: Use textContent for user input! ***
+        title.textContent = skill.name; 
+        
+        // 2. Health Bar Wrapper (Using innerHTML for static, non-user-input HTML is fine)
+        const barWrapper = document.createElement("div");
+        barWrapper.className = "bar-wrapper";
+        barWrapper.innerHTML = `
+            <div 
+                class="health-bar" 
+                style="width:${health}%; background:${color};">
+            </div>
+        `;
+        
+        // 3. Last Trained Element
+        const lastTrainedDiv = document.createElement("div");
+        lastTrainedDiv.className = "last-trained";
+        const readable = new Date(skill.lastTrained)
+            .toLocaleDateString('en-US', { timeZone: 'America/Los_Angeles' });
+        lastTrainedDiv.textContent = `Last trained: ${readable}`;
+        
+        // 4. Button Row (Using innerHTML for static, non-user-input HTML is fine)
+        const btnRow = document.createElement("div");
+        btnRow.className = "btn-row";
+        btnRow.innerHTML = `
+            <button class="study-btn" onclick="studySkill(${skill.id})">
+                Study
+            </button>
+            <button class="delete-btn" onclick="deleteSkill(${skill.id})">
+                Delete
+            </button>
+        `;
+
+        // 5. Append all parts to the card
+        card.appendChild(title);
+        card.appendChild(barWrapper);
+        card.appendChild(lastTrainedDiv);
+        card.appendChild(btnRow);
+        
+        // --- END: BUILDING THE CARD SECURELY ---
+
+        container.appendChild(card);
+    });
+}
 </script>
 
 </body>
