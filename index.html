@@ -24,9 +24,21 @@
       --glass: rgba(255,255,255,0.7);
       --text: #111827;
       --card-shadow: 0 6px 20px rgba(28,31,45,0.06);
-      /* Skill Decay/More to Learn Button Gradient */
+      /* Custom Colors for Subject Stacked Bar */
+      --color-subj-1: #3498db; /* Blue: Default Math */
+      --color-subj-2: #2ecc71; /* Green: Default Reading */
+      --color-subj-3: #f1c40f; /* Yellow */
+      --color-subj-4: #e74c3c; /* Red */
+
+      /* Heatmap Colors (Blue Gradient for Total Effort) */
+      --heatmap-0: rgba(0,0,0,0.06);
+      --heatmap-1: #e9f0ff; /* Lightest */
+      --heatmap-2: #c5d8ff; /* Medium */
+      --heatmap-3: #9cbaff; /* Darker */
+      --heatmap-4: #739bff; /* Darkest */
+
       --yellow-gradient: linear-gradient(90deg, #FFD700, #FFC300, #FFB700);
-      --shadow-yellow: 0 4px 10px rgba(255, 215, 0, 0.25); /* Adjusted shadow for yellow button */
+      --shadow-yellow: 0 4px 10px rgba(255, 215, 0, 0.25);
     }
     html[data-theme='dark']{
       --bg: #0f1226;
@@ -36,6 +48,11 @@
       --muted:#9aa3b2;
       --text: #e6eef8;
       --card-shadow: 0 6px 20px rgba(0,0,0,0.6);
+      /* Dark mode heatmap */
+      --heatmap-1: #1a2a47;
+      --heatmap-2: #243c68;
+      --heatmap-3: #305193;
+      --heatmap-4: #3c65c0;
     }
     *{box-sizing:border-box}
     body{
@@ -102,7 +119,7 @@
       cursor: pointer;
       box-shadow: var(--shadow-yellow);
       text-decoration: none;
-      display: block; /* Make sure the link fills its container */
+      display: block;
       text-align: center;
     }
     .action-link-btn > div {
@@ -110,60 +127,96 @@
         font-weight: 600;
     }
 
+    /* === NEW CALENDAR STYLES === */
+    #monthlyCalendar {
+        display:grid;
+        grid-template-columns:repeat(7,1fr);
+        gap:4px; /* Reduced gap for monthly view */
+        margin-top: 8px;
+    }
+    .calendar-day-label {
+        font-size: 10px;
+        text-align: center;
+        color: var(--muted);
+        font-weight: 700;
+    }
+    .calendar-cell {
+        width: 100%;
+        padding-top: 100%; /* Creates a square */
+        border-radius: 6px;
+        position: relative;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+        box-shadow: inset 0 0 0 1px rgba(0,0,0,0.04);
+        background: var(--heatmap-0);
+        margin-top: 4px;
+    }
+    /* Heatmap Backgrounds (based on total minutes) */
+    .calendar-cell[data-level="1"] { background: var(--heatmap-1); } /* 0-15m */
+    .calendar-cell[data-level="2"] { background: var(--heatmap-2); } /* 15-45m */
+    .calendar-cell[data-level="3"] { background: var(--heatmap-3); } /* 45-90m */
+    .calendar-cell[data-level="4"] { background: var(--heatmap-4); } /* 90+m */
+
+    .day-number {
+        position: absolute;
+        top: 4px;
+        left: 5px;
+        font-size: 10px;
+        font-weight: 600;
+        color: var(--text);
+    }
+    .day-bar-wrap {
+        position: absolute;
+        bottom: 4px;
+        left: 5px;
+        right: 5px;
+        height: 5px; /* Height of the stacked bar */
+        border-radius: 2px;
+        overflow: hidden;
+        background: rgba(0,0,0,0.1);
+        display: flex;
+        justify-content: flex-start;
+        align-items: stretch;
+    }
+    .day-bar-segment {
+        height: 100%;
+        min-width: 1px; /* Ensure tiny segments are visible */
+    }
+    .subject-legend-item {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 12px;
+        font-weight: 600;
+        margin-right: 12px;
+    }
+    .legend-color-box {
+        width: 10px;
+        height: 10px;
+        border-radius: 3px;
+    }
+    /* END NEW CALENDAR STYLES */
+
     /* small responsive tweaks */
     @media (max-width:420px){svg.bunny{width:180px;height:140px}}
     /* theme toggle button position */
     #themeToggle{position:absolute;right:10px;top:10px;padding:8px 12px;border-radius:10px;border:0;background:var(--card);color:var(--text);box-shadow:var(--card-shadow);cursor:pointer}
-    
+
     /* 06DEC updates */
-    /* CLEAR ACTIVE STATE FOR MODE BUTTONS */
-    .mode-btn.active,
-    .timer-btn.active,
-    .stopwatch-btn.active,
-    .ctrl-btn.active {
+    .mode-btn.active, .ctrl-btn.active {
         outline: 3px solid #FFF4C2;
         box-shadow: 0 0 12px #FFF4C2;
         filter: brightness(1.2);
     }
-
-    /* Hover visual improvement */
-    .mode-btn:hover,
-    .ctrl-btn:hover {
+    .mode-btn:hover, .ctrl-btn:hover {
         transform: scale(1.03);
     }
-
-    /* ACTIVE STATES FOR MODE + CONTROLS (Exact to your buttons) */
-    #mode-stopwatch.active,
-    #mode-timer.active,
-    #start-btn.active,
-    #pause-btn.active,
-    #stop-btn.active {
+    #mode-stopwatch.active, #mode-timer.active, #start-btn.active, #pause-btn.active, #stop-btn.active {
         outline: 3px solid #FFF4C2;
         box-shadow: 0 0 12px #FFF4C2;
         filter: brightness(1.25);
         transform: scale(1.03);
     }
-
-    #studyCalendar {
-        display:grid;
-        grid-template-columns:repeat(7,1fr);
-        gap:6px;
-    }
-
-    #studyCalendar .day {
-        width: 100%;
-        padding-top: 100%;
-        border-radius: 6px;
-        background: rgba(0,0,0,0.06);
-        position: relative;
-    }
-
-    /* Level colors - feel free to adjust these */
-    #studyCalendar .day[data-level="1"] { background:#FFD700; }
-    #studyCalendar .day[data-level="2"] { background:#FFC000; }
-    #studyCalendar .day[data-level="3"] { background:#FFA000; }
-    #studyCalendar .day[data-level="4"] { background:#FF7A00; }
-
     /* end 06DEC updates */
   </style>
 </head>
@@ -258,8 +311,26 @@
       </div>
 
       <div class="card" id="calendar-card" style="margin-top:12px">
-        <div style="font-weight:800;margin-bottom:8px;">Study Activity</div>
-        <div id="studyCalendar"></div>
+        <div style="font-weight:800;margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;">
+          <div>Monthly Subject Activity</div>
+          <div id="calendar-month-year" class="muted small">Dec 2025</div>
+        </div>
+
+        <div id="subject-legend" style="display:flex; flex-wrap:wrap; margin-bottom: 10px;">
+          </div>
+
+        <div id="day-headers" style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;">
+            <div class="calendar-day-label">S</div>
+            <div class="calendar-day-label">M</div>
+            <div class="calendar-day-label">T</div>
+            <div class="calendar-day-label">W</div>
+            <div class="calendar-day-label">T</div>
+            <div class="calendar-day-label">F</div>
+            <div class="calendar-day-label">S</div>
+        </div>
+
+        <div id="monthlyCalendar">
+            </div>
       </div>
 
       <a href="./moretolearn.html" class="action-link-btn" style="margin-top:0;">
@@ -273,28 +344,31 @@
 <script>
 /*
   index.html - PWA entry file
-  This file expects these companion files in the same folder:
-    - manifest.json
-    - service-worker.js
-    - bunny-icon.png
-    - icons/icon-192.png
-    - icons/icon-512.png
-
-  It preserves the full study-timer functionality: subject list with add/edit/delete,
-  per-subject progress bars, stopwatch & timer modes, bunny pet + health, localStorage persistence,
-  export/reset, quick-add time, and theme toggle (light/dark).
+  REVISIONS:
+  1. Updated state.subjects with a 'colorIndex' property for mapping to CSS variables.
+  2. Updated study history structure to log minutes per subject ID.
+  3. Replaced updateStudyCalendar with renderMonthlyCalendar for the monthly, stacked-bar view.
+  4. Added logic for rendering day numbers, heatmap levels, and subject stacked bars.
 */
 
 (function(){
 
   // Storage key
   const STORAGE_KEY = 'studyTimerData_v1';
+  const HISTORY_KEY = 'studyHistory_v2'; // New key for updated structure
 
-  // Initial default state (will be overwritten by saved state if present)
+  const SUBJECT_COLORS = [
+    'var(--color-subj-1)', // Blue: Default Math
+    'var(--color-subj-2)', // Green: Default Reading
+    'var(--color-subj-3)', // Yellow
+    'var(--color-subj-4)', // Red
+  ];
+
+  // Initial default state (note the addition of colorIndex)
   let state = {
     subjects: [
-      {id: id(), name: 'Math', seconds: 0, goalSeconds: 60*60},
-      {id: id(), name: 'Reading', seconds: 0, goalSeconds: 45*60}
+      {id: 's1', name: 'Math', seconds: 0, goalSeconds: 60*60, colorIndex: 0},
+      {id: 's2', name: 'Reading', seconds: 0, goalSeconds: 45*60, colorIndex: 1}
     ],
     activeId: null,
     timer: {running:false, mode:'stopwatch', startedAt:null, elapsed:0, countdownLeft:0},
@@ -303,18 +377,45 @@
     theme: 'light'
   };
 
+  // HISTORY STRUCTURE (Example of what will be stored in localStorage under HISTORY_KEY)
+  // {
+  //   "2025-12-07": {
+  //     "totalMinutes": 105,
+  //     "subjects": {
+  //       "s1": 60, // Math ID: 60 minutes
+  //       "s2": 45  // Reading ID: 45 minutes
+  //     }
+  //   }
+  // }
+  let studyHistory = {};
+
+
   // Helpers
   function id(){ return Math.random().toString(36).slice(2,9) }
   function save(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)) }
+  function loadHistory() {
+    try {
+      studyHistory = JSON.parse(localStorage.getItem(HISTORY_KEY) || "{}");
+    } catch(e) { console.warn('History Load failed', e); studyHistory = {}; }
+  }
+  function saveHistory() {
+    localStorage.setItem(HISTORY_KEY, JSON.stringify(studyHistory));
+  }
+
   function load(){
+    loadHistory();
     try{
       const raw = localStorage.getItem(STORAGE_KEY);
       if(raw) {
         const parsed = JSON.parse(raw);
         // quick merge so keys not present in parsed are preserved
         state = Object.assign(state, parsed);
+        // Ensure subjects have a colorIndex if loaded from old state
+        state.subjects.forEach((s, i) => {
+            if (s.colorIndex === undefined) s.colorIndex = i % SUBJECT_COLORS.length;
+        });
       }
-    }catch(e){ console.warn('Load failed', e) }
+    }catch(e){ console.warn('State Load failed', e) }
   }
 
   // Formatting
@@ -347,6 +448,9 @@
   const quick15 = document.getElementById('quick-15');
   const quick30 = document.getElementById('quick-30');
   const themeToggle = document.getElementById('themeToggle');
+  const monthlyCalendarEl = document.getElementById('monthlyCalendar');
+  const calendarMonthYearEl = document.getElementById('calendar-month-year');
+  const subjectLegendEl = document.getElementById('subject-legend');
 
   function setActiveModeBtn(btn) {
     document.getElementById("mode-stopwatch").classList.remove("active");
@@ -361,12 +465,25 @@
     document.getElementById(id).classList.add("active");
   }
 
-  function logStudyToCalendar(seconds) {
-    const today = new Date().toLocaleDateString("en-CA");
-    let history = JSON.parse(localStorage.getItem("studyHistory") || "{}");
-    history[today] = (history[today] || 0) + Math.round(seconds / 60);
-    localStorage.setItem("studyHistory", JSON.stringify(history));
-    updateStudyCalendar();
+  function logStudyToCalendar(subjectId, seconds) {
+    const today = new Date().toLocaleDateString("en-CA"); // YYYY-MM-DD
+    const minutes = Math.round(seconds / 60);
+
+    if (minutes <= 0 || !subjectId) return;
+
+    // Initialize day entry
+    if (!studyHistory[today]) {
+        studyHistory[today] = { totalMinutes: 0, subjects: {} };
+    }
+
+    // Add minutes to subject
+    studyHistory[today].subjects[subjectId] = (studyHistory[today].subjects[subjectId] || 0) + minutes;
+
+    // Update total minutes for heatmap level
+    studyHistory[today].totalMinutes += minutes;
+
+    saveHistory();
+    renderMonthlyCalendar();
   }
 
 
@@ -378,8 +495,6 @@
     const last = localStorage.getItem("study_daily_reset");
 
     if (today !== last) {
-      // NOTE: Your original code resets seconds to 0 but keeps goalSeconds.
-      // Assuming you want the timer total 'seconds' to reset daily, but goals to persist.
       state.subjects = state.subjects.map(s => ({
         ...s,
         seconds: 0
@@ -406,6 +521,22 @@
     subjectsEl.innerHTML = '';
     const total = state.subjects.reduce((s,x)=>s+x.seconds,0);
     totalTimeEl.textContent = Math.floor(total/60) + 'm';
+
+    // Render Legend
+    subjectLegendEl.innerHTML = '';
+    state.subjects.forEach(s => {
+        const item = document.createElement('div');
+        item.className = 'subject-legend-item';
+        const box = document.createElement('div');
+        box.className = 'legend-color-box';
+        box.style.backgroundColor = SUBJECT_COLORS[s.colorIndex];
+        box.title = s.name;
+        item.appendChild(box);
+        item.appendChild(document.createTextNode(s.name));
+        subjectLegendEl.appendChild(item);
+    });
+
+
     for(const s of state.subjects){
       const wrap = document.createElement('div');
       wrap.className = 'subject-row';
@@ -461,8 +592,8 @@
       leftCol.appendChild(progWrap);
 
       actions.appendChild(selectBtn);
-      actions.appendChild(editBtn);
-      actions.appendChild(deleteBtn);
+      // actions.appendChild(editBtn); // Removed edit/delete from main view for simplicity, keep in JS
+      // actions.appendChild(deleteBtn);
 
       wrap.appendChild(leftCol);
       wrap.appendChild(actions);
@@ -475,7 +606,14 @@
     const name = prompt('New subject name (e.g., "Biology")');
     if(!name) return;
     const mins = parseInt(prompt('Goal in minutes (optional, default 60)'),10) || 60;
-    state.subjects.push({id:id(), name:name.trim(), seconds:0, goalSeconds: mins*60});
+    const nextColorIndex = state.subjects.length % SUBJECT_COLORS.length;
+    state.subjects.push({
+        id: id(),
+        name: name.trim(),
+        seconds: 0,
+        goalSeconds: mins * 60,
+        colorIndex: nextColorIndex
+    });
     if(!state.activeId) state.activeId = state.subjects[0].id;
     save(); renderAll();
   });
@@ -524,7 +662,7 @@
         return;
       }
       state.timer.countdownLeft = total;
-      state.timer.elapsed = 0;
+      state.timer.elapsed = 0; // Elapsed is now only used for stopwatch
     }
     state.timer.running = true;
     state.timer.startedAt = Date.now();
@@ -537,18 +675,40 @@
     if(!state.timer.running) return;
     const now = Date.now();
     const dt = Math.floor((now - state.timer.startedAt)/1000);
+    
+    // Log elapsed time to active subject for both modes
+    const consumedTime = (state.timer.mode === 'stopwatch') ? dt : Math.min(dt, state.timer.countdownLeft);
+    if (state.activeId && consumedTime > 0) {
+        const s = state.subjects.find(x=>x.id===state.activeId);
+        if(s) s.seconds += consumedTime;
+        logStudyToCalendar(state.activeId, consumedTime);
+    }
+    
     state.timer.elapsed += dt;
     state.timer.running = false;
     state.timer.startedAt = null;
     save();
     renderAll();
-
   };
 
   stopBtn.onclick = ()=> {
-    if (state.timer.elapsed > 0) {
-      logStudyToCalendar(state.timer.elapsed);
+    // Before stopping, calculate and log any time since last tick/pause
+    if (state.timer.running && state.activeId) {
+      const now = Date.now();
+      const dt = Math.floor((now - state.timer.startedAt)/1000);
+      
+      const consumedTime = (state.timer.mode === 'stopwatch') ? dt : Math.min(dt, state.timer.countdownLeft);
+      if (consumedTime > 0) {
+          const s = state.subjects.find(x=>x.id===state.activeId);
+          if(s) s.seconds += consumedTime;
+          logStudyToCalendar(state.activeId, consumedTime);
+      }
     }
+    // Also log any time accumulated in elapsed if in stopwatch mode and not running
+    if (state.timer.mode === 'stopwatch' && !state.timer.running && state.timer.elapsed > 0 && state.activeId) {
+        logStudyToCalendar(state.activeId, state.timer.elapsed);
+    }
+
 
     setActiveCtrlBtn("stop-btn");
     state.timer.running = false;
@@ -557,7 +717,6 @@
     state.timer.countdownLeft = 0;
     save();
     renderAll();
-
   };
 
   quick15.onclick = ()=> { addTimeToActive(15*60); };
@@ -568,23 +727,23 @@
     const s = state.subjects.find(x=>x.id===state.activeId);
     if(!s) return;
     s.seconds += sec;
+    logStudyToCalendar(state.activeId, sec);
     save(); renderAll();
-    logStudyToCalendar(sec); // Log quick add to calendar
   }
 
   // export/reset
   exportBtn.onclick = ()=> {
-    const data = JSON.stringify(state, null, 2);
+    const data = JSON.stringify({ state, studyHistory }, null, 2);
     const url = URL.createObjectURL(new Blob([data], {type:'application/json'}));
     const a = document.createElement('a');
     a.href = url; a.download = 'study-timer-export.json';
     a.click(); URL.revokeObjectURL(url);
   };
   resetBtn.onclick = ()=> {
-    if(confirm('Clear all data and reset?')){
+    if(confirm('Clear all data (state, history, and daily reset marker) and reset?')){
       localStorage.removeItem(STORAGE_KEY);
-      localStorage.removeItem("studyHistory"); // Clear calendar history too
-      localStorage.removeItem("study_daily_reset"); // Clear reset marker too
+      localStorage.removeItem(HISTORY_KEY);
+      localStorage.removeItem("study_daily_reset");
       location.reload();
     }
   };
@@ -608,26 +767,31 @@
     const now = Date.now();
     const dtMs = now - (state.lastTick || now);
     const dt = Math.floor(dtMs/1000);
+    const activeSubject = state.subjects.find(x=>x.id===state.activeId);
+
     if(dt > 0){
-      if(state.timer.running && state.activeId){
+      if(state.timer.running && activeSubject){
         if(state.timer.mode === 'stopwatch'){
-          const s = state.subjects.find(x=>x.id===state.activeId);
-          if(s) s.seconds += dt;
+          // Stopwatch: Add to subject time and elapsed time
+          activeSubject.seconds += dt;
           state.timer.elapsed += dt;
           state.timer.startedAt = now;
+          logStudyToCalendar(state.activeId, dt); // Log every tick
         } else if(state.timer.mode === 'timer'){
+          // Timer: Consume countdown, add consumed time to subject time
           const before = state.timer.countdownLeft;
           state.timer.countdownLeft = Math.max(0, Math.floor(state.timer.countdownLeft - dt));
           const consumed = Math.min(dt, before);
-          const s = state.subjects.find(x=>x.id===state.activeId);
-          if(s) s.seconds += consumed;
+          
+          activeSubject.seconds += consumed;
           state.timer.startedAt = now;
+          logStudyToCalendar(state.activeId, consumed); // Log consumed time
+
           if(state.timer.countdownLeft <= 0){
             state.timer.running = false;
             state.timer.startedAt = null;
             flashBunny();
-            logStudyToCalendar(state.timer.elapsed); // Log study time when timer ends
-            state.timer.elapsed = 0; // Clear elapsed time for timer mode after logging
+            // Do not clear elapsed time here, keep it for potential review if needed
           }
         }
         state.health = Math.min(100, state.health + (dt * 0.12));
@@ -656,20 +820,18 @@
     }
 
     timerDisplay.textContent = fmtTime(secs);
-    
+
     // Control button states
-    startBtn.disabled = state.timer.running; 
+    startBtn.disabled = state.timer.running;
     startBtn.style.opacity = state.timer.running ? 0.6 : 1;
     pauseBtn.disabled = !state.timer.running;
-    
+
     // Set active controls visual
     if (state.timer.running) {
         setActiveCtrlBtn("start-btn");
-    } else if (state.timer.elapsed > 0) {
-        // Paused state
+    } else if ((state.timer.mode === 'stopwatch' && state.timer.elapsed > 0) || (state.timer.mode === 'timer' && state.timer.countdownLeft > 0)) {
         setActiveCtrlBtn("pause-btn");
     } else {
-        // Stopped/Initial state
         setActiveCtrlBtn("stop-btn");
     }
 
@@ -689,48 +851,96 @@
     timerInputs.style.display = state.timer.mode === 'timer' ? 'flex' : 'none';
   }
 
+  function renderMonthlyCalendar() {
+    monthlyCalendarEl.innerHTML = '';
+    const now = new Date();
+    // Get the first day of the current month
+    const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const lastDayOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+    // Get the day of the week for the 1st (0=Sun, 6=Sat)
+    const startOffset = firstDayOfMonth.getDay();
+
+    calendarMonthYearEl.textContent = now.toLocaleString('en-US', { month: 'short', year: 'numeric' });
+
+    // 1. Fill in blank cells for the start offset
+    for (let i = 0; i < startOffset; i++) {
+        const blank = document.createElement("div");
+        monthlyCalendarEl.appendChild(blank);
+    }
+
+    // 2. Render all days of the month
+    for (let date = 1; date <= lastDayOfMonth; date++) {
+        const d = new Date(now.getFullYear(), now.getMonth(), date);
+        const dateKey = d.toLocaleDateString("en-CA"); // YYYY-MM-DD
+
+        const dayData = studyHistory[dateKey] || { totalMinutes: 0, subjects: {} };
+        const totalMinutes = dayData.totalMinutes;
+        const subjData = dayData.subjects;
+
+        let level = 0;
+        if (totalMinutes > 15) level = 1;  // > 15m
+        if (totalMinutes > 45) level = 2;  // > 45m (0.75h)
+        if (totalMinutes > 90) level = 3;  // > 90m (1.5h)
+        if (totalMinutes > 180) level = 4; // > 180m (3h)
+
+        const cell = document.createElement("div");
+        cell.className = "calendar-cell";
+        cell.dataset.level = level;
+
+        // Day Number
+        const dayNum = document.createElement("div");
+        dayNum.className = "day-number";
+        dayNum.textContent = date;
+        cell.appendChild(dayNum);
+
+        // Tooltip Content (Full breakdown)
+        let tooltipText = `${d.toLocaleDateString('en-US')}\nTotal: ${Math.round(totalMinutes/60)}h ${totalMinutes%60}m`;
+        let subjectBars = [];
+        let totalTimeForBar = 0;
+
+        // Collect and sort subject data for the bar
+        Object.keys(subjData).forEach(subjId => {
+            if (subjData[subjId] > 0) {
+                totalTimeForBar += subjData[subjId];
+                subjectBars.push({ id: subjId, minutes: subjData[subjId] });
+            }
+        });
+
+        // Create Stacked Bar
+        if (totalTimeForBar > 0) {
+            const barWrap = document.createElement("div");
+            barWrap.className = "day-bar-wrap";
+
+            subjectBars.forEach(bar => {
+                const s = state.subjects.find(x => x.id === bar.id);
+                const pct = (bar.minutes / totalTimeForBar) * 100;
+
+                const segment = document.createElement("div");
+                segment.className = "day-bar-segment";
+                segment.style.width = `${pct}%`;
+                segment.style.backgroundColor = s ? SUBJECT_COLORS[s.colorIndex] : '#ccc';
+                barWrap.appendChild(segment);
+
+                // Add to Tooltip
+                tooltipText += `\n${s ? s.name : 'Unknown'}: ${Math.round(bar.minutes/60)}h ${bar.minutes%60}m`;
+            });
+            cell.appendChild(barWrap);
+        }
+
+        cell.title = tooltipText;
+        monthlyCalendarEl.appendChild(cell);
+    }
+  }
+
   function renderAll(){
     renderSubjects();
     renderTimer();
+    renderMonthlyCalendar();
     healthInner.style.width = Math.max(0, Math.min(100, Math.round(state.health))) + '%';
   }
 
-  function updateStudyCalendar() {
-    const cal = document.getElementById("studyCalendar");
-    if (!cal) return;
-
-    let history = JSON.parse(localStorage.getItem("studyHistory") || "{}");
-    cal.innerHTML = "";
-    
-    // Get the last 7 days including today
-    const dates = [];
-    for(let i = 6; i >= 0; i--) {
-        const d = new Date();
-        d.setDate(d.getDate() - i);
-        dates.push(d.toLocaleDateString("en-CA")); // YYYY-MM-DD format
-    }
-
-    // Render the last 7 days
-    dates.forEach(day => {
-      const minutes = history[day] || 0;
-      let level = 0;
-      if (minutes > 5) level = 1;
-      if (minutes > 15) level = 2;
-      if (minutes > 30) level = 3;
-      if (minutes > 60) level = 4;
-
-      const box = document.createElement("div");
-      box.className = "day";
-      box.dataset.level = level;
-      box.title = `${day}: ${minutes} minutes`;
-      cal.appendChild(box);
-    });
-  }
-
-
   // start UI
   renderAll();
-  updateStudyCalendar(); // Ensure calendar renders on load
   requestAnimationFrame(tick);
 
   // expose state for debugging
