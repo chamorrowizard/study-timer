@@ -5,10 +5,8 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Study Timer — Bunny Buddy</title>
 
-  <!-- PWA manifest -->
   <link rel="manifest" href="manifest.json">
 
-  <!-- Icons -->
   <link rel="icon" type="image/png" href="bunny-icon.png">
   <link rel="apple-touch-icon" href="icons/icon-192.png">
 
@@ -26,6 +24,9 @@
       --glass: rgba(255,255,255,0.7);
       --text: #111827;
       --card-shadow: 0 6px 20px rgba(28,31,45,0.06);
+      /* Skill Decay/More to Learn Button Gradient */
+      --yellow-gradient: linear-gradient(90deg, #FFD700, #FFC300, #FFB700);
+      --shadow-yellow: 0 4px 10px rgba(255, 215, 0, 0.25); /* Adjusted shadow for yellow button */
     }
     html[data-theme='dark']{
       --bg: #0f1226;
@@ -90,52 +91,78 @@
     .icon-btn{background:transparent;border-radius:8px;padding:6px;border:1px solid rgba(0,0,0,0.04);cursor:pointer}
     .pill{padding:6px 10px;border-radius:999px;background:linear-gradient(90deg,#f5f6ff,#fff);font-weight:700;color:var(--muted)}
 
+    /* Custom Button for Decay/Ideas */
+    .action-link-btn {
+      border: 0;
+      padding: 6px 6px;
+      border-radius: 10px;
+      background: var(--yellow-gradient);
+      color: white;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: var(--shadow-yellow);
+      text-decoration: none;
+      display: block; /* Make sure the link fills its container */
+      text-align: center;
+    }
+    .action-link-btn > div {
+        color: white;
+        font-weight: 600;
+    }
+
     /* small responsive tweaks */
     @media (max-width:420px){svg.bunny{width:180px;height:140px}}
     /* theme toggle button position */
     #themeToggle{position:absolute;right:10px;top:10px;padding:8px 12px;border-radius:10px;border:0;background:var(--card);color:var(--text);box-shadow:var(--card-shadow);cursor:pointer}
+    
     /* 06DEC updates */
     /* CLEAR ACTIVE STATE FOR MODE BUTTONS */
-.mode-btn.active,
-.timer-btn.active,
-.stopwatch-btn.active,
-.ctrl-btn.active {
-    outline: 3px solid #FFF4C2;
-    box-shadow: 0 0 12px #FFF4C2;
-    filter: brightness(1.2);
-}
+    .mode-btn.active,
+    .timer-btn.active,
+    .stopwatch-btn.active,
+    .ctrl-btn.active {
+        outline: 3px solid #FFF4C2;
+        box-shadow: 0 0 12px #FFF4C2;
+        filter: brightness(1.2);
+    }
 
-/* Hover visual improvement */
-.mode-btn:hover,
-.ctrl-btn:hover {
-    transform: scale(1.03);
-}
+    /* Hover visual improvement */
+    .mode-btn:hover,
+    .ctrl-btn:hover {
+        transform: scale(1.03);
+    }
 
-/* ACTIVE STATES FOR MODE + CONTROLS (Exact to your buttons) */
-#mode-stopwatch.active,
-#mode-timer.active,
-#start-btn.active,
-#pause-btn.active,
-#stop-btn.active {
-    outline: 3px solid #FFF4C2;
-    box-shadow: 0 0 12px #FFF4C2;
-    filter: brightness(1.25);
-    transform: scale(1.03);
-}
+    /* ACTIVE STATES FOR MODE + CONTROLS (Exact to your buttons) */
+    #mode-stopwatch.active,
+    #mode-timer.active,
+    #start-btn.active,
+    #pause-btn.active,
+    #stop-btn.active {
+        outline: 3px solid #FFF4C2;
+        box-shadow: 0 0 12px #FFF4C2;
+        filter: brightness(1.25);
+        transform: scale(1.03);
+    }
 
-#studyCalendar .day {
-    width: 100%;
-    padding-top: 100%;
-    border-radius: 6px;
-    background: rgba(0,0,0,0.06);
-    position: relative;
-}
+    #studyCalendar {
+        display:grid;
+        grid-template-columns:repeat(7,1fr);
+        gap:6px;
+    }
 
-#studyCalendar .day[data-level="1"] { background:#FFD700; }
-#studyCalendar .day[data-level="2"] { background:#FFC000; }
-#studyCalendar .day[data-level="3"] { background:#FFA000; }
-#studyCalendar .day[data-level="4"] { background:#FF7A00; }
+    #studyCalendar .day {
+        width: 100%;
+        padding-top: 100%;
+        border-radius: 6px;
+        background: rgba(0,0,0,0.06);
+        position: relative;
+    }
 
+    /* Level colors - feel free to adjust these */
+    #studyCalendar .day[data-level="1"] { background:#FFD700; }
+    #studyCalendar .day[data-level="2"] { background:#FFC000; }
+    #studyCalendar .day[data-level="3"] { background:#FFA000; }
+    #studyCalendar .day[data-level="4"] { background:#FF7A00; }
 
     /* end 06DEC updates */
   </style>
@@ -144,18 +171,14 @@
   <button id="themeToggle" aria-label="Toggle theme">Dark</button>
 
   <div class="app">
-    <!-- Left: Subjects & Control -->
     <div class="card">
       <header class="app-header">
         <div>
           <h1>Study Timer — Bunny Buddy</h1>
           <p class="lead">Add subjects, track time, and help your bunny thrive ✨</p>
         </div>
-       <a href="./skill decay/skilldecay.html" style="text-decoration: none;">
-        <div style="border:0;padding:6px 6px;border-radius:10px;
-background: linear-gradient(90deg, #FFD700, #FFC300, #FFB700);
-color:white;font-weight:600;cursor:pointer;
-box-shadow:0 4px 10px rgba(108,92,231,0.14);">Decay Tracker</div>
+        <a href="./skill decay/skilldecay.html" class="action-link-btn" style="padding:10px 12px; box-shadow:0 4px 10px rgba(108,92,231,0.14);">
+        <div>Decay Tracker</div>
        </a>
       </header>
 
@@ -177,11 +200,9 @@ box-shadow:0 4px 10px rgba(108,92,231,0.14);">Decay Tracker</div>
       </div>
     </div>
 
-    <!-- Right: Bunny + Timer -->
     <div class="right">
       <div class="card bunny-card">
         <div class="bunny-wrap">
-          <!-- Use external bunny-icon.png as an <img> fallback and decorative SVG for animation -->
           <img id="bunny-img" src="bunny-icon.png" alt="Bunny" style="width:220px;height:160px;object-fit:cover;border-radius:14px;"/>
         </div>
 
@@ -209,7 +230,7 @@ box-shadow:0 4px 10px rgba(108,92,231,0.14);">Decay Tracker</div>
           </div>
         </div>
 
-        <div class="timer-display" id="timer-display">00:00:00</div>
+        <div class="timer-display" id="timer-display" aria-live="polite">00:00:00</div>
 
         <div class="mode-toggle">
           <button id="mode-stopwatch" class="btn small">Stopwatch</button>
@@ -217,8 +238,8 @@ box-shadow:0 4px 10px rgba(108,92,231,0.14);">Decay Tracker</div>
         </div>
 
         <div class="input-row" id="timer-inputs" style="display:none">
-          <input id="timer-minutes" type="number" min="0" placeholder="minutes" />
-          <input id="timer-seconds" type="number" min="0" placeholder="seconds" />
+          <input id="timer-minutes" type="number" min="0" placeholder="minutes" aria-label="Timer minutes" />
+          <input id="timer-seconds" type="number" min="0" placeholder="seconds" aria-label="Timer seconds" />
         </div>
 
         <div style="display:flex;gap:8px;justify-content:center">
@@ -235,27 +256,16 @@ box-shadow:0 4px 10px rgba(108,92,231,0.14);">Decay Tracker</div>
           </div>
         </div>
       </div>
-      <a href="./moretolearn.html" style="text-decoration: none;">
-      <!-- 
-        <div style="border:0;padding:6px 6px;border-radius:10px;
-background: linear-gradient(90deg, #FFD700, #FFC300, #FFB700);
-color:white;font-weight:600;cursor:pointer;
-box-shadow:0 4px 10px rgba(108,92,231,0.14);"> -->
 
-<div class="card" id="calendar-card" style="margin-top:12px">
-  <div style="font-weight:800;margin-bottom:8px;">Study Activity</div>
-  <div id="studyCalendar" style="display:grid;grid-template-columns:repeat(7,1fr);gap:6px;"></div>
-</div>
-
-
-      <div class="card" style="border:0;padding:6px 6px;border-radius:10px;
-background: linear-gradient(90deg, #FFD700, #FFC300, #FFB700);
-color:white;font-weight:600;cursor:pointer;
-box-shadow:0 4px 10px rgba(108,92,231,0.14); text-align: center;">
-        <div style="color:white;font-weight:600;">Click Here</div>
-        <div style="margin-top:6px; color:white;font-weight:600;">Study Ideas Board</div>
-        </a>
+      <div class="card" id="calendar-card" style="margin-top:12px">
+        <div style="font-weight:800;margin-bottom:8px;">Study Activity</div>
+        <div id="studyCalendar"></div>
       </div>
+
+      <a href="./moretolearn.html" class="action-link-btn" style="margin-top:0;">
+        <div>Click Here</div>
+        <div style="margin-top:6px;">Study Ideas Board</div>
+      </a>
 
     </div>
   </div>
@@ -337,45 +347,49 @@ box-shadow:0 4px 10px rgba(108,92,231,0.14); text-align: center;">
   const quick15 = document.getElementById('quick-15');
   const quick30 = document.getElementById('quick-30');
   const themeToggle = document.getElementById('themeToggle');
-  function setActiveModeBtn(btn) {
-  document.getElementById("mode-stopwatch").classList.remove("active");
-  document.getElementById("mode-timer").classList.remove("active");
-  btn.classList.add("active");
-}
 
-function setActiveCtrlBtn(id) {
-  ["start-btn","pause-btn","stop-btn"].forEach(x =>
-    document.getElementById(x).classList.remove("active")
-  );
-  document.getElementById(id).classList.add("active");
-}
-function logStudyToCalendar(seconds) {
-  const today = new Date().toLocaleDateString("en-CA");
-  let history = JSON.parse(localStorage.getItem("studyHistory") || "{}");
-  history[today] = (history[today] || 0) + Math.round(seconds / 60);
-  localStorage.setItem("studyHistory", JSON.stringify(history));
-  updateStudyCalendar();
-}
+  function setActiveModeBtn(btn) {
+    document.getElementById("mode-stopwatch").classList.remove("active");
+    document.getElementById("mode-timer").classList.remove("active");
+    btn.classList.add("active");
+  }
+
+  function setActiveCtrlBtn(id) {
+    ["start-btn","pause-btn","stop-btn"].forEach(x =>
+      document.getElementById(x).classList.remove("active")
+    );
+    document.getElementById(id).classList.add("active");
+  }
+
+  function logStudyToCalendar(seconds) {
+    const today = new Date().toLocaleDateString("en-CA");
+    let history = JSON.parse(localStorage.getItem("studyHistory") || "{}");
+    history[today] = (history[today] || 0) + Math.round(seconds / 60);
+    localStorage.setItem("studyHistory", JSON.stringify(history));
+    updateStudyCalendar();
+  }
 
 
   // Load saved state
   load();
 
   function resetDailyTimes() {
-  const today = new Date().toLocaleDateString("en-CA");
-  const last = localStorage.getItem("study_daily_reset");
+    const today = new Date().toLocaleDateString("en-CA");
+    const last = localStorage.getItem("study_daily_reset");
 
-  if (today !== last) {
-    state.subjects = state.subjects.map(s => ({
-      ...s,
-      seconds: 0
-    }));
-    localStorage.setItem("study_daily_reset", today);
-    save();
+    if (today !== last) {
+      // NOTE: Your original code resets seconds to 0 but keeps goalSeconds.
+      // Assuming you want the timer total 'seconds' to reset daily, but goals to persist.
+      state.subjects = state.subjects.map(s => ({
+        ...s,
+        seconds: 0
+      }));
+      localStorage.setItem("study_daily_reset", today);
+      save();
+    }
   }
-}
 
-resetDailyTimes();
+  resetDailyTimes();
 
 
   // Set theme from state
@@ -478,21 +492,21 @@ resetDailyTimes();
   }
 
   // Timer controls
-modeStopwatch.onclick = ()=> {
-  state.timer.mode = 'stopwatch';
-  timerInputs.style.display='none';
-  modePill.textContent='Stopwatch';
-  setActiveModeBtn(modeStopwatch);
-  save(); renderAll();
-};
+  modeStopwatch.onclick = ()=> {
+    state.timer.mode = 'stopwatch';
+    timerInputs.style.display='none';
+    modePill.textContent='Stopwatch';
+    setActiveModeBtn(modeStopwatch);
+    save(); renderAll();
+  };
 
-modeTimer.onclick = ()=> {
-  state.timer.mode = 'timer';
-  timerInputs.style.display='flex';
-  modePill.textContent='Timer';
-  setActiveModeBtn(modeTimer);
-  save(); renderAll();
-};
+  modeTimer.onclick = ()=> {
+    state.timer.mode = 'timer';
+    timerInputs.style.display='flex';
+    modePill.textContent='Timer';
+    setActiveModeBtn(modeTimer);
+    save(); renderAll();
+  };
 
 
   startBtn.onclick = ()=> {
@@ -519,7 +533,7 @@ modeTimer.onclick = ()=> {
   };
 
   pauseBtn.onclick = ()=> {
-      setActiveCtrlBtn("pause-btn");
+    setActiveCtrlBtn("pause-btn");
     if(!state.timer.running) return;
     const now = Date.now();
     const dt = Math.floor((now - state.timer.startedAt)/1000);
@@ -532,9 +546,9 @@ modeTimer.onclick = ()=> {
   };
 
   stopBtn.onclick = ()=> {
-  if (state.timer.elapsed > 0) {
-    logStudyToCalendar(state.timer.elapsed);
-  }
+    if (state.timer.elapsed > 0) {
+      logStudyToCalendar(state.timer.elapsed);
+    }
 
     setActiveCtrlBtn("stop-btn");
     state.timer.running = false;
@@ -555,6 +569,7 @@ modeTimer.onclick = ()=> {
     if(!s) return;
     s.seconds += sec;
     save(); renderAll();
+    logStudyToCalendar(sec); // Log quick add to calendar
   }
 
   // export/reset
@@ -568,6 +583,8 @@ modeTimer.onclick = ()=> {
   resetBtn.onclick = ()=> {
     if(confirm('Clear all data and reset?')){
       localStorage.removeItem(STORAGE_KEY);
+      localStorage.removeItem("studyHistory"); // Clear calendar history too
+      localStorage.removeItem("study_daily_reset"); // Clear reset marker too
       location.reload();
     }
   };
@@ -609,6 +626,8 @@ modeTimer.onclick = ()=> {
             state.timer.running = false;
             state.timer.startedAt = null;
             flashBunny();
+            logStudyToCalendar(state.timer.elapsed); // Log study time when timer ends
+            state.timer.elapsed = 0; // Clear elapsed time for timer mode after logging
           }
         }
         state.health = Math.min(100, state.health + (dt * 0.12));
@@ -628,24 +647,46 @@ modeTimer.onclick = ()=> {
   }
 
   function renderTimer(){
-    let display = '00:00:00';
+    let secs = 0;
     if(state.timer.mode === 'stopwatch'){
-      const secs = state.timer.elapsed + (state.timer.running ? Math.floor((Date.now()-state.timer.startedAt)/1000) : 0);
-      display = fmtTime(secs);
-    } else {
-      const left = state.timer.countdownLeft - (state.timer.running ? Math.floor((Date.now()-state.timer.startedAt)/1000) : 0);
-      const secs = Math.max(0,left);
-      display = fmtTime(secs);
+      secs = state.timer.elapsed + (state.timer.running ? Math.floor((Date.now()-state.timer.startedAt)/1000) : 0);
+    } else { // 'timer'
+      secs = state.timer.countdownLeft - (state.timer.running ? Math.floor((Date.now()-state.timer.startedAt)/1000) : 0);
+      secs = Math.max(0,secs);
     }
-    timerDisplay.textContent = display;
-    if(state.timer.running){
-      startBtn.disabled = true; startBtn.style.opacity = 0.6; pauseBtn.disabled = false;
+
+    timerDisplay.textContent = fmtTime(secs);
+    
+    // Control button states
+    startBtn.disabled = state.timer.running; 
+    startBtn.style.opacity = state.timer.running ? 0.6 : 1;
+    pauseBtn.disabled = !state.timer.running;
+    
+    // Set active controls visual
+    if (state.timer.running) {
+        setActiveCtrlBtn("start-btn");
+    } else if (state.timer.elapsed > 0) {
+        // Paused state
+        setActiveCtrlBtn("pause-btn");
     } else {
-      startBtn.disabled = false; startBtn.style.opacity = 1; pauseBtn.disabled = true;
+        // Stopped/Initial state
+        setActiveCtrlBtn("stop-btn");
     }
+
+    // Active Subject / Mode pill
     const active = state.subjects.find(x=>x.id===state.activeId);
     activeSubjectEl.textContent = active ? active.name : '— None —';
     modePill.textContent = state.timer.mode === 'stopwatch' ? 'Stopwatch' : 'Timer';
+
+    // Mode buttons active state
+    if (state.timer.mode === 'stopwatch') {
+      setActiveModeBtn(modeStopwatch);
+    } else {
+      setActiveModeBtn(modeTimer);
+    }
+
+    // Timer input visibility
+    timerInputs.style.display = state.timer.mode === 'timer' ? 'flex' : 'none';
   }
 
   function renderAll(){
@@ -655,32 +696,41 @@ modeTimer.onclick = ()=> {
   }
 
   function updateStudyCalendar() {
-  const cal = document.getElementById("studyCalendar");
-  if (!cal) return;
+    const cal = document.getElementById("studyCalendar");
+    if (!cal) return;
 
-  let history = JSON.parse(localStorage.getItem("studyHistory") || "{}");
+    let history = JSON.parse(localStorage.getItem("studyHistory") || "{}");
+    cal.innerHTML = "";
+    
+    // Get the last 7 days including today
+    const dates = [];
+    for(let i = 6; i >= 0; i--) {
+        const d = new Date();
+        d.setDate(d.getDate() - i);
+        dates.push(d.toLocaleDateString("en-CA")); // YYYY-MM-DD format
+    }
 
-  cal.innerHTML = "";
+    // Render the last 7 days
+    dates.forEach(day => {
+      const minutes = history[day] || 0;
+      let level = 0;
+      if (minutes > 5) level = 1;
+      if (minutes > 15) level = 2;
+      if (minutes > 30) level = 3;
+      if (minutes > 60) level = 4;
 
-  Object.keys(history).forEach(day => {
-    const minutes = history[day];
-    let level = 0;
-    if (minutes > 5) level = 1;
-    if (minutes > 15) level = 2;
-    if (minutes > 30) level = 3;
-    if (minutes > 60) level = 4;
-
-    const box = document.createElement("div");
-    box.className = "day";
-    box.dataset.level = level;
-    box.title = `${day}: ${minutes} minutes`;
-    cal.appendChild(box);
-  });
-}
+      const box = document.createElement("div");
+      box.className = "day";
+      box.dataset.level = level;
+      box.title = `${day}: ${minutes} minutes`;
+      cal.appendChild(box);
+    });
+  }
 
 
   // start UI
   renderAll();
+  updateStudyCalendar(); // Ensure calendar renders on load
   requestAnimationFrame(tick);
 
   // expose state for debugging
