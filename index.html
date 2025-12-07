@@ -576,13 +576,7 @@
       leftCol.appendChild(info);
       leftCol.appendChild(progWrap);
 
-      // --- ONLY SHOW ACTIVE PILL, NO BUTTONS ---
-      const activePill = document.createElement('div');
-      if(state.activeId === s.id) {
-          activePill.className = 'pill';
-          activePill.textContent = 'Active';
-      }
-      
+
       wrap.appendChild(leftCol);
       wrap.appendChild(activePill);
       subjectsEl.appendChild(wrap);
