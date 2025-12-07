@@ -94,50 +94,6 @@
     @media (max-width:420px){svg.bunny{width:180px;height:140px}}
     /* theme toggle button position */
     #themeToggle{position:absolute;right:10px;top:10px;padding:8px 12px;border-radius:10px;border:0;background:var(--card);color:var(--text);box-shadow:var(--card-shadow);cursor:pointer}
-    /* 06DEC updates */
-    /* CLEAR ACTIVE STATE FOR MODE BUTTONS */
-.mode-btn.active,
-.timer-btn.active,
-.stopwatch-btn.active,
-.ctrl-btn.active {
-    outline: 3px solid #FFF4C2;
-    box-shadow: 0 0 12px #FFF4C2;
-    filter: brightness(1.2);
-}
-
-/* Hover visual improvement */
-.mode-btn:hover,
-.ctrl-btn:hover {
-    transform: scale(1.03);
-}
-
-/* ACTIVE STATES FOR MODE + CONTROLS (Exact to your buttons) */
-#mode-stopwatch.active,
-#mode-timer.active,
-#start-btn.active,
-#pause-btn.active,
-#stop-btn.active {
-    outline: 3px solid #FFF4C2;
-    box-shadow: 0 0 12px #FFF4C2;
-    filter: brightness(1.25);
-    transform: scale(1.03);
-}
-
-#studyCalendar .day {
-    width: 100%;
-    padding-top: 100%;
-    border-radius: 6px;
-    background: rgba(0,0,0,0.06);
-    position: relative;
-}
-
-#studyCalendar .day[data-level="1"] { background:#FFD700; }
-#studyCalendar .day[data-level="2"] { background:#FFC000; }
-#studyCalendar .day[data-level="3"] { background:#FFA000; }
-#studyCalendar .day[data-level="4"] { background:#FF7A00; }
-
-
-    /* end 06DEC updates */
   </style>
 </head>
 <body>
@@ -241,13 +197,6 @@ box-shadow:0 4px 10px rgba(108,92,231,0.14);">Decay Tracker</div>
 background: linear-gradient(90deg, #FFD700, #FFC300, #FFB700);
 color:white;font-weight:600;cursor:pointer;
 box-shadow:0 4px 10px rgba(108,92,231,0.14);"> -->
-
-<div class="card" id="calendar-card" style="margin-top:12px">
-  <div style="font-weight:800;margin-bottom:8px;">Study Activity</div>
-  <div id="studyCalendar" style="display:grid;grid-template-columns:repeat(7,1fr);gap:6px;"></div>
-</div>
-
-
       <div class="card" style="border:0;padding:6px 6px;border-radius:10px;
 background: linear-gradient(90deg, #FFD700, #FFC300, #FFB700);
 color:white;font-weight:600;cursor:pointer;
@@ -337,46 +286,9 @@ box-shadow:0 4px 10px rgba(108,92,231,0.14); text-align: center;">
   const quick15 = document.getElementById('quick-15');
   const quick30 = document.getElementById('quick-30');
   const themeToggle = document.getElementById('themeToggle');
-  function setActiveModeBtn(btn) {
-  document.getElementById("mode-stopwatch").classList.remove("active");
-  document.getElementById("mode-timer").classList.remove("active");
-  btn.classList.add("active");
-}
-
-function setActiveCtrlBtn(id) {
-  ["start-btn","pause-btn","stop-btn"].forEach(x =>
-    document.getElementById(x).classList.remove("active")
-  );
-  document.getElementById(id).classList.add("active");
-}
-function logStudyToCalendar(seconds) {
-  const today = new Date().toLocaleDateString("en-CA");
-  let history = JSON.parse(localStorage.getItem("studyHistory") || "{}");
-  history[today] = (history[today] || 0) + Math.round(seconds / 60);
-  localStorage.setItem("studyHistory", JSON.stringify(history));
-  updateStudyCalendar();
-}
-
 
   // Load saved state
   load();
-
-  function resetDailyTimes() {
-  const today = new Date().toLocaleDateString("en-CA");
-  const last = localStorage.getItem("study_daily_reset");
-
-  if (today !== last) {
-    state.subjects = state.subjects.map(s => ({
-      ...s,
-      seconds: 0
-    }));
-    localStorage.setItem("study_daily_reset", today);
-    save();
-  }
-}
-
-resetDailyTimes();
-
 
   // Set theme from state
   if(state.theme) {
@@ -478,25 +390,10 @@ resetDailyTimes();
   }
 
   // Timer controls
-modeStopwatch.onclick = ()=> {
-  state.timer.mode = 'stopwatch';
-  timerInputs.style.display='none';
-  modePill.textContent='Stopwatch';
-  setActiveModeBtn(modeStopwatch);
-  save(); renderAll();
-};
-
-modeTimer.onclick = ()=> {
-  state.timer.mode = 'timer';
-  timerInputs.style.display='flex';
-  modePill.textContent='Timer';
-  setActiveModeBtn(modeTimer);
-  save(); renderAll();
-};
-
+  modeStopwatch.onclick = ()=> { state.timer.mode = 'stopwatch'; timerInputs.style.display='none'; modePill.textContent='Stopwatch'; save(); renderAll() };
+  modeTimer.onclick = ()=> { state.timer.mode = 'timer'; timerInputs.style.display='flex'; modePill.textContent='Timer'; save(); renderAll() };
 
   startBtn.onclick = ()=> {
-    setActiveCtrlBtn("start-btn");
     if(!state.activeId){
       alert('Select or add a subject first.');
       return;
@@ -515,11 +412,9 @@ modeTimer.onclick = ()=> {
     state.timer.running = true;
     state.timer.startedAt = Date.now();
     save();
-
   };
 
   pauseBtn.onclick = ()=> {
-      setActiveCtrlBtn("pause-btn");
     if(!state.timer.running) return;
     const now = Date.now();
     const dt = Math.floor((now - state.timer.startedAt)/1000);
@@ -528,22 +423,15 @@ modeTimer.onclick = ()=> {
     state.timer.startedAt = null;
     save();
     renderAll();
-
   };
 
   stopBtn.onclick = ()=> {
-  if (state.timer.elapsed > 0) {
-    logStudyToCalendar(state.timer.elapsed);
-  }
-
-    setActiveCtrlBtn("stop-btn");
     state.timer.running = false;
     state.timer.startedAt = null;
     state.timer.elapsed = 0;
     state.timer.countdownLeft = 0;
     save();
     renderAll();
-
   };
 
   quick15.onclick = ()=> { addTimeToActive(15*60); };
@@ -653,31 +541,6 @@ modeTimer.onclick = ()=> {
     renderTimer();
     healthInner.style.width = Math.max(0, Math.min(100, Math.round(state.health))) + '%';
   }
-
-  function updateStudyCalendar() {
-  const cal = document.getElementById("studyCalendar");
-  if (!cal) return;
-
-  let history = JSON.parse(localStorage.getItem("studyHistory") || "{}");
-
-  cal.innerHTML = "";
-
-  Object.keys(history).forEach(day => {
-    const minutes = history[day];
-    let level = 0;
-    if (minutes > 5) level = 1;
-    if (minutes > 15) level = 2;
-    if (minutes > 30) level = 3;
-    if (minutes > 60) level = 4;
-
-    const box = document.createElement("div");
-    box.className = "day";
-    box.dataset.level = level;
-    box.title = `${day}: ${minutes} minutes`;
-    cal.appendChild(box);
-  });
-}
-
 
   // start UI
   renderAll();

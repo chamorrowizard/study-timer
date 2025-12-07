@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Skill Decay</title>
+
+<link rel="stylesheet" href="decay.css">
+</head>
+<body>
+
+<h1>Skill Decay Tracker</h1>
+
+<div id="add-area">
+  <input id="skill-name" placeholder="New subject name..." aria-label="New subject name" />
+  <select id="decay-select-new" title="Decay hours for new subject" class="timeframe-btn">
+    <option value="24">24 hours</option>
+    <option value="48" selected>48 hours</option>
+    <option value="72">72 hours</option>
+  </select>
+  <button id="add-btn">Add</button>
+</div>
+
+<div id="skills-container"></div>
+
+<script>
+/* ===========================
+   Storage key and init
+   =========================== */
+const STORAGE_KEY = 'decaySkills_v2';
+let skills = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+
+/* ===========================
+   Decay calculation (Option A)
+   - Each subject decays from 100 -> 0 over decayHours (24/48/72)
+   - Uses full local time (ms)
+   =========================== */
+
+function hoursSince(timestampMs) {
+  return (Date.now() - timestampMs) / (1000 * 60 * 60);
+}
+
+function healthPercent(lastTrainedMs, decayHours) {
+  const elapsedHours = hoursSince(lastTrainedMs);
+  const ratio = elapsedHours / decayHours;
+  const health = Math.max(0, 1 - ratio);
+  return Math.round(health * 100);
+}
+
+/* ===========================
+   Save / load
+   =========================== */
+function save() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(skills));
+}
+
+/* ===========================
+   Utilities: format local date/time
+   =========================== */
+function fmtLocal(tsMs) {
+  try {
+    const d = new Date(tsMs);
+    return d.toLocaleString(); // local date + time
+  } catch (e) {
+    return '';
+  }
+}
+
+/* ===========================
+   Add new skill
+   =========================== */
+document.getElementById('add-btn').addEventListener('click', () => {
+  const nameEl = document.getElementById('skill-name');
+  const decaySelectNew = document.getElementById('decay-select-new');
+  const name = (nameEl.value || '').trim();
+  if (!name) {
+    alert('Please enter a subject name.');
+    return;
+  }
+
+  const decayHours = Number(decaySelectNew.value) || 48;
+  const newSkill = {
+    id: Date.now() + Math.floor(Math.random()*999),
+    name,
+    lastTrained: Date.now(), // local time in ms (current)
+    decayHours
+  };
+
+  skills.unshift(newSkill);
+  save();
+  nameEl.value = '';
+  render();
+});
+
+/* ===========================
+   Confirm helpers
+   =========================== */
+function confirmAction(message) {
+  return window.confirm(message);
+}
+
+/* ===========================
+   Study (update) and Delete handlers
+   =========================== */
+function studySkill(id) {
+  const skill = skills.find(s => s.id === id);
+  if (!skill) return;
+  const ok = confirmAction(`Mark "${skill.name}" as studied now? This will reset its freshness to 100%.`);
+  if (!ok) return;
+  skill.lastTrained = Date.now();
+  save();
+  render();
+}
+
+function deleteSkill(id) {
+  const skill = skills.find(s => s.id === id);
+  if (!skill) return;
+  const ok = confirmAction(`Delete subject "${skill.name}"? This cannot be undone.`);
+  if (!ok) return;
+  skills = skills.filter(s => s.id !== id);
+  save();
+  render();
+}
+
+/* ===========================
+   Change per-subject decay hours
+   =========================== */
+function changeDecayHours(id, newHours) {
+  const skill = skills.find(s => s.id === id);
+  if (!skill) return;
+  skill.decayHours = Number(newHours);
+  save();
+  render();
+}
+
+/* ===========================
+   Render UI
+   =========================== */
+const container = document.getElementById('skills-container');
+
+function getColorForHealth(h) {
+  if (h > 60) return 'linear-gradient(90deg,#32ff4d,#4dff87)';
+  if (h > 30) return 'linear-gradient(90deg,#ffdd00,#ffb300)';
+  return 'linear-gradient(90deg,#ff4d4d,#ff1a1a)';
+}
+
+function render() {
+  container.innerHTML = '';
+
+  if (skills.length === 0) {
+    container.innerHTML = '<p style="text-align:center;opacity:.9">No subjects yet — add one above.</p>';
+    return;
+  }
+
+  skills.forEach(skill => {
+    const health = healthPercent(skill.lastTrained, skill.decayHours || 48);
+    const color = getColorForHealth(health);
+
+    const card = document.createElement('div');
+    card.className = 'skill';
+
+    // build inner HTML
+    card.innerHTML = `
+      <div class="skill-title">
+        <span>${escapeHtml(skill.name)}</span>
+        <span class="pill" style="margin-left:8px">Decay: </span>
+        <select class="decay-select" data-id="${skill.id}">
+          <option value="24"${(skill.decayHours==24) ? ' selected':''}>24h</option>
+          <option value="48"${(skill.decayHours==48) ? ' selected':''}>48h</option>
+          <option value="72"${(skill.decayHours==72) ? ' selected':''}>72h</option>
+        </select>
+      </div>
+
+      <div class="bar-wrapper" aria-hidden="true">
+        <div class="health-bar" style="width:${health}%; background:${color}"></div>
+      </div>
+
+      <div class="meta-row">
+        <div class="last-trained">Last studied: ${fmtLocal(skill.lastTrained)}</div>
+        <div style="font-weight:700">${health}%</div>
+      </div>
+
+      <div class="btn-row">
+        <button class="study-btn" data-id="${skill.id}">Study</button>
+        <button class="delete-btn" data-id="${skill.id}">Delete</button>
+      </div>
+    `;
+
+    container.appendChild(card);
+  });
+
+  // hookup events: study, delete, decay-select
+  container.querySelectorAll('.study-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      const id = Number(e.currentTarget.dataset.id);
+      studySkill(id);
+    });
+  });
+
+  container.querySelectorAll('.delete-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      const id = Number(e.currentTarget.dataset.id);
+      deleteSkill(id);
+    });
+  });
+
+  container.querySelectorAll('.decay-select').forEach(sel => {
+    sel.addEventListener('change', (e) => {
+      const id = Number(e.currentTarget.dataset.id);
+      const newHours = Number(e.currentTarget.value);
+      changeDecayHours(id, newHours);
+    });
+  });
+}
+
+/* ===========================
+   Escape HTML helper
+   =========================== */
+function escapeHtml(str) {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
+/* ===========================
+   Init render
+   =========================== */
+render();
+
+/* Auto-refresh the UI every 10s to reflect decay in near-real time */
+setInterval(render, 10000);
+</script>
+
+</body>
+</html>
