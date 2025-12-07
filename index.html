@@ -247,7 +247,8 @@
       <div style="margin-top:14px" class="controls-bottom">
         <div class="muted">Total study: <span id="total-time">0m</span></div>
         <div style="display:flex;gap:8px">
-          
+          <button id="reset-data" class="btn secondary small">Reset</button>
+          <button id="export-data" class="btn small">Export</button>
         </div>
       </div>
     </div>
@@ -515,13 +516,13 @@
   // Ensure active subject exists
   if(!state.activeId && state.subjects.length) state.activeId = state.subjects[0].id;
 
-// Render subjects (REVISED IMPLEMENTATION)
+  // Render subjects
   function renderSubjects(){
     subjectsEl.innerHTML = '';
     const total = state.subjects.reduce((s,x)=>s+x.seconds,0);
     totalTimeEl.textContent = Math.floor(total/60) + 'm';
 
-    // Render Legend (Same as before)
+    // Render Legend
     subjectLegendEl.innerHTML = '';
     state.subjects.forEach(s => {
         const item = document.createElement('div');
@@ -539,23 +540,13 @@
     for(const s of state.subjects){
       const wrap = document.createElement('div');
       wrap.className = 'subject-row';
-      
-      // --- ADD CLICK HANDLER TO THE WHOLE ROW ---
-      wrap.onclick = ()=> manageSubject(s.id); 
-      if(state.activeId === s.id) {
-          wrap.style.border = '2px solid var(--accent)'; // Highlight active
-          wrap.style.background = 'linear-gradient(90deg, rgba(108,92,231,0.08), rgba(0,184,148,0.06))';
-      }
-
 
       const info = document.createElement('div');
       info.className = 'subject-info';
       const title = document.createElement('div');
       title.className = 'subject-name';
       title.textContent = s.name;
-      // Highlight name if active
-      if(state.activeId === s.id) title.style.color = 'var(--accent)'; 
-      
+      if(state.activeId === s.id) title.style.color = 'var(--accent)';
       const time = document.createElement('div');
       time.className = 'subject-time';
       time.textContent = fmtTime(s.seconds);
@@ -571,77 +562,44 @@
       prog.style.width = pct + '%';
       progWrap.appendChild(prog);
 
+      const actions = document.createElement('div');
+      actions.className = 'subject-actions';
+      const selectBtn = document.createElement('button');
+      selectBtn.className = 'btn secondary small';
+      selectBtn.textContent = (state.activeId === s.id) ? 'Active' : 'Select';
+      selectBtn.onclick = ()=>{ state.activeId = s.id; save(); renderAll() };
+
+      const editBtn = document.createElement('button');
+      editBtn.className = 'btn small ghost';
+      editBtn.textContent = 'Edit';
+      editBtn.onclick = ()=> editSubject(s.id);
+
+      const deleteBtn = document.createElement('button');
+      deleteBtn.className = 'btn small';
+      deleteBtn.style.background = 'var(--danger)';
+      deleteBtn.textContent = 'Delete';
+      deleteBtn.onclick = ()=> {
+        if(confirm('Delete subject "'+s.name+'"?')) {
+          state.subjects = state.subjects.filter(x=>x.id!==s.id);
+          if(state.activeId === s.id) state.activeId = state.subjects.length ? state.subjects[0].id : null;
+          save(); renderAll();
+        }
+      };
+
       const leftCol = document.createElement('div');
       leftCol.style.flex = '1';
       leftCol.appendChild(info);
       leftCol.appendChild(progWrap);
 
+      actions.appendChild(selectBtn);
+      // actions.appendChild(editBtn); // Removed edit/delete from main view for simplicity, keep in JS
+      actions.appendChild(deleteBtn);
 
       wrap.appendChild(leftCol);
-      wrap.appendChild(activePill);
+      wrap.appendChild(actions);
       subjectsEl.appendChild(wrap);
     }
-  } // End renderSubjects
-
-  // --- NEW manageSubject FUNCTION (Replaces the old editSubject) ---
-  function manageSubject(id){
-      const s = state.subjects.find(x => x.id === id);
-      if (!s) return;
-
-      const action = prompt(
-          `Manage Subject: "${s.name}"\n\n` +
-          `Current Goal: ${Math.round((s.goalSeconds || 3600) / 60)} minutes\n` +
-          '------------------------------------\n' +
-          'A. Select as Active\n' +
-          'B. Edit Name & Goal\n' +
-          'C. Delete Subject\n' +
-          '------------------------------------\n' +
-          'Enter A, B, or C, or cancel to close.'
-      )?.toUpperCase();
-
-      if (!action) return;
-
-      if (action === 'A') {
-          // Select as Active
-          state.activeId = s.id;
-          alert(`Subject "${s.name}" is now active.`);
-      } else if (action === 'B') {
-          // Edit Name & Goal
-          const newName = prompt(`Enter a new name for "${s.name}":`, s.name);
-          if (newName !== null) {
-              s.name = newName.trim() || s.name;
-          }
-
-          const newGoal = parseInt(prompt(`Enter new goal minutes for "${s.name}":`, Math.round((s.goalSeconds || 3600) / 60)), 10);
-          if (!isNaN(newGoal) && newGoal > 0) {
-              s.goalSeconds = Math.max(60, newGoal * 60);
-          }
-          alert(`Subject "${s.name}" updated.`);
-
-      } else if (action === 'C') {
-          // Delete Subject
-          if (state.subjects.length === 1) {
-              alert("Cannot delete the last remaining subject.");
-              return;
-          }
-
-          const confirmDelete = confirm(`Are you sure you want to DELETE "${s.name}"? This will NOT remove its history from the calendar.`);
-          if (confirmDelete) {
-              state.subjects = state.subjects.filter(x => x.id !== s.id);
-              if (state.activeId === s.id) {
-                  state.activeId = state.subjects.length ? state.subjects[0].id : null;
-              }
-              alert(`Subject "${s.name}" has been deleted.`);
-          }
-      } else {
-          alert('Invalid option. Please enter A, B, or C.');
-      }
-
-      save();
-      renderAll();
   }
-// End renderSubjects
-  
 
   // Add subject
   addSubBtn.addEventListener('click', ()=> {
@@ -660,63 +618,78 @@
     save(); renderAll();
   });
 
-// --- NEW manageSubject FUNCTION (Replaces the old editSubject) ---
-  function manageSubject(id){
-      const s = state.subjects.find(x => x.id === id);
-      if (!s) return;
-
-      const action = prompt(
-          `Manage Subject: "${s.name}"\n\n` +
-          `Current Goal: ${Math.round((s.goalSeconds || 3600) / 60)} minutes\n` +
-          '------------------------------------\n' +
-          'A. Select as Active\n' +
-          'B. Edit Name & Goal\n' +
-          'C. Delete Subject\n' +
-          '------------------------------------\n' +
-          'Enter A, B, or C, or cancel to close.'
-      )?.toUpperCase();
-
-      if (!action) return;
-
-      if (action === 'A') {
-          // Select as Active
-          state.activeId = s.id;
-          alert(`Subject "${s.name}" is now active.`);
-      } else if (action === 'B') {
-          // Edit Name & Goal
-          const newName = prompt(`Enter a new name for "${s.name}":`, s.name);
-          if (newName !== null) {
-              s.name = newName.trim() || s.name;
-          }
-
-          const newGoal = parseInt(prompt(`Enter new goal minutes for "${s.name}":`, Math.round((s.goalSeconds || 3600) / 60)), 10);
-          if (!isNaN(newGoal) && newGoal > 0) {
-              s.goalSeconds = Math.max(60, newGoal * 60);
-          }
-          alert(`Subject "${s.name}" updated.`);
-
-      } else if (action === 'C') {
-          // Delete Subject
-          if (state.subjects.length === 1) {
-              alert("Cannot delete the last remaining subject.");
-              return;
-          }
-
-          const confirmDelete = confirm(`Are you sure you want to DELETE "${s.name}"? This will NOT remove its history from the calendar.`);
-          if (confirmDelete) {
-              state.subjects = state.subjects.filter(x => x.id !== s.id);
-              if (state.activeId === s.id) {
-                  state.activeId = state.subjects.length ? state.subjects[0].id : null;
-              }
-              alert(`Subject "${s.name}" has been deleted.`);
-          }
-      } else {
-          alert('Invalid option. Please enter A, B, or C.');
-      }
-
-      save();
-      renderAll();
+  function editSubject(id){
+    const s = state.subjects.find(x=>x.id===id);
+    if(!s) return;
+    const newName = prompt('Edit name', s.name);
+    if(newName==null) return;
+    const newGoal = parseInt(prompt('Goal minutes', Math.round((s.goalSeconds||3600)/60)),10) || Math.round((s.goalSeconds||3600)/60);
+    s.name = newName.trim();
+    s.goalSeconds = Math.max(60, newGoal*60);
+    save(); renderAll();
   }
+
+  // Timer controls
+  modeStopwatch.onclick = ()=> {
+    state.timer.mode = 'stopwatch';
+    timerInputs.style.display='none';
+    modePill.textContent='Stopwatch';
+    setActiveModeBtn(modeStopwatch);
+    save(); renderAll();
+  };
+
+  modeTimer.onclick = ()=> {
+    state.timer.mode = 'timer';
+    timerInputs.style.display='flex';
+    modePill.textContent='Timer';
+    setActiveModeBtn(modeTimer);
+    save(); renderAll();
+  };
+
+
+  startBtn.onclick = ()=> {
+    setActiveCtrlBtn("start-btn");
+    if(!state.activeId){
+      alert('Select or add a subject first.');
+      return;
+    }
+    if(state.timer.mode === 'timer'){
+      const mins = parseInt(timerMinutes.value || '0',10) || 0;
+      const secs = parseInt(timerSeconds.value || '0',10) || 0;
+      const total = mins*60 + secs;
+      if(total <= 0){
+        alert('Enter timer duration.');
+        return;
+      }
+      state.timer.countdownLeft = total;
+      state.timer.elapsed = 0; // Elapsed is now only used for stopwatch
+    }
+    state.timer.running = true;
+    state.timer.startedAt = Date.now();
+    save();
+
+  };
+
+  pauseBtn.onclick = ()=> {
+    setActiveCtrlBtn("pause-btn");
+    if(!state.timer.running) return;
+    const now = Date.now();
+    const dt = Math.floor((now - state.timer.startedAt)/1000);
+    
+    // Log elapsed time to active subject for both modes
+    const consumedTime = (state.timer.mode === 'stopwatch') ? dt : Math.min(dt, state.timer.countdownLeft);
+    if (state.activeId && consumedTime > 0) {
+        const s = state.subjects.find(x=>x.id===state.activeId);
+        if(s) s.seconds += consumedTime;
+        logStudyToCalendar(state.activeId, consumedTime);
+    }
+    
+    state.timer.elapsed += dt;
+    state.timer.running = false;
+    state.timer.startedAt = null;
+    save();
+    renderAll();
+  };
 
   stopBtn.onclick = ()=> {
     // Before stopping, calculate and log any time since last tick/pause
