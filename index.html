@@ -426,6 +426,19 @@
     return h + ':' + m + ':' + s;
   }
 
+  // Format total seconds into human-friendly hours/minutes (e.g. "2 hrs 30 mins")
+  function formatHoursMinsFromSeconds(secs){
+    const totalMins = Math.floor(secs / 60);
+    const hrs = Math.floor(totalMins / 60);
+    const mins = totalMins % 60;
+    if(hrs > 0){
+      const hrLabel = hrs === 1 ? 'hr' : 'hrs';
+      const minLabel = mins === 1 ? 'min' : 'mins';
+      return mins > 0 ? `${hrs} ${hrLabel} ${mins} ${minLabel}` : `${hrs} ${hrLabel}`;
+    }
+    return `${mins} ${mins === 1 ? 'min' : 'mins'}`;
+  }
+
   // DOM elements
   const subjectsEl = document.getElementById('subjects');
   const totalTimeEl = document.getElementById('total-time');
@@ -520,7 +533,7 @@
   function renderSubjects(){
     subjectsEl.innerHTML = '';
     const total = state.subjects.reduce((s,x)=>s+x.seconds,0);
-    totalTimeEl.textContent = Math.floor(total/60) + 'm';
+    totalTimeEl.textContent = formatHoursMinsFromSeconds(total);
 
     // Render Legend
     subjectLegendEl.innerHTML = '';
