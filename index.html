@@ -15,44 +15,50 @@
   <style>
     /* ========== Reset & Base ========== */
     :root{
-      --bg:#fffaf6;
-      --card:#ffffff;
-      --accent:#6c5ce7;
-      --accent-2:#00b894;
-      --muted:#9aa3b2;
-      --danger:#ff6b6b;
-      --glass: rgba(255,255,255,0.7);
-      --text: #111827;
-      --card-shadow: 0 6px 20px rgba(28,31,45,0.06);
-      /* Custom Colors for Subject Stacked Bar */
-      --color-subj-1: #3498db; /* Blue: Default Math */
-      --color-subj-2: #2ecc71; /* Green: Default Reading */
-      --color-subj-3: #f1c40f; /* Yellow */
-      --color-subj-4: #e74c3c; /* Red */
+      /* Warm Sand & Soft Neutral Backgrounds */
+      --bg: #faf8f5;
+      --card: #ffffff;
+      
+      /* Primary Brand Accent (Soft Iris) & Secondary Accent (Teal-Mint) */
+      --accent: #635bff;
+      --accent-2: #00d4b1;
+      --muted: #8792a2;
+      --danger: #ff5263;
+      --glass: rgba(255, 255, 255, 0.85);
+      --text: #1a1f36;
+      --card-shadow: 0 8px 24px rgba(26, 31, 54, 0.05);
 
-      /* Heatmap Colors (Blue Gradient for Total Effort) */
-      --heatmap-0: rgba(0,0,0,0.06);
-      --heatmap-1: #e9f0ff; /* Lightest */
-      --heatmap-2: #c5d8ff; /* Medium */
-      --heatmap-3: #9cbaff; /* Darker */
-      --heatmap-4: #739bff; /* Darkest */
+      /* Subject Colors: Harmonious Pastel Palette */
+      --color-subj-1: #4d90fe; /* Warm Blue */
+      --color-subj-2: #20c997; /* Soft Teal */
+      --color-subj-3: #ffb703; /* Soft Gold */
+      --color-subj-4: #ff6b81; /* Coral Pink */
 
-      --yellow-gradient: linear-gradient(90deg, #FFD700, #FFC300, #FFB700);
-      --shadow-yellow: 0 4px 10px rgba(255, 215, 0, 0.25);
+      /* Heatmap Colors: Monochromatic Violet Gradient */
+      --heatmap-0: rgba(0, 0, 0, 0.03);
+      --heatmap-1: #f0eeff; /* 15-45m */
+      --heatmap-2: #d8d4fe; /* 45-90m */
+      --heatmap-3: #b0a7fd; /* 90-180m */
+      --heatmap-4: #635bff; /* 180m+ */
+
+      /* Warm Gold Gradient for Decay/Idea Buttons */
+      --yellow-gradient: linear-gradient(135deg, #ffb703, #fb8500);
+      --shadow-yellow: 0 4px 12px rgba(251, 133, 0, 0.2);
     }
     html[data-theme='dark']{
-      --bg: #0f1226;
-      --card: #151823;
-      --accent: #9b7cff;
-      --accent-2:#21d19f;
-      --muted:#9aa3b2;
-      --text: #e6eef8;
-      --card-shadow: 0 6px 20px rgba(0,0,0,0.6);
-      /* Dark mode heatmap */
-      --heatmap-1: #1a2a47;
-      --heatmap-2: #243c68;
-      --heatmap-3: #305193;
-      --heatmap-4: #3c65c0;
+      --bg: #0d1117;
+      --card: #161b22;
+      --accent: #818cf8;
+      --accent-2: #34d399;
+      --muted: #8b949e;
+      --text: #f0f6fc;
+      --card-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+
+      /* Dark Mode Heatmap */
+      --heatmap-1: #1e1b4b;
+      --heatmap-2: #312e81;
+      --heatmap-3: #4338ca;
+      --heatmap-4: #6366f1;
     }
     *{box-sizing:border-box}
     body{
@@ -570,7 +576,15 @@
   function renderSubjects(){
     subjectsEl.innerHTML = '';
     const total = state.subjects.reduce((s,x)=>s+x.seconds,0);
-    totalTimeEl.textContent = Math.floor(total/60) + 'm';
+    const totalMins = Math.floor(total / 60);
+    const hours = Math.floor(totalMins / 60);
+    const mins = totalMins % 60;
+
+    if (hours > 0) {
+      totalTimeEl.textContent = `${hours} hr${hours > 1 ? 's' : ''} ${mins} min${mins !== 1 ? 's' : ''}`;
+    } else {
+      totalTimeEl.textContent = `${mins} min${mins !== 1 ? 's' : ''}`;
+    }
 
     // Render Legend
     subjectLegendEl.innerHTML = '';
